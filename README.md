@@ -41,4 +41,9 @@ Loopback
 We pluged the serial port of the Pi0 in such way that Rx and TX are loopped, and used Minicom to test it and verify the access to the loopback. 
 
 Communication with the STM32  
+To communicate with the STM32, an independant UART port is used (UART 5, cf Lab session 1).  
+We modify the printf fonction to enable it to display on both serial port (UART 2 and UART 5).  
 
+'''C
+//code 
+'''
