@@ -20,3 +20,6 @@ PUTCHAR_PROTOTYPE
   return ch;
 }
 ```
+### Lab Session 2 : 
+
+Id / login for the Raspberry Pi 0 W : TPBUS / tpbusjpp
