@@ -21,10 +21,10 @@ PUTCHAR_PROTOTYPE
 }
 ```
 ## Lab Session 2 : STM32 - Raspberry Pi 0 WIFI interfacing
-During this session we are going to establish the communication between the two boards Raspberry Pi 0 WIFI ("Pi0" below) and STM32.
+During this session we are going to establish the communication between the two boards Raspberry Pi 0 WIFI ("RPi" below) and STM32.
 
 ### Setting the Raspberry Pi 0 Wifi
-First, we follow a few steps to prepare the Pi0: 
+First, we follow a few steps to prepare the RPi: 
 
 - Download the image "Raspberry Pi OS (32-bit) Lite" on the SD card. 
 - Use the Rpi_imager software to install it on the SD card.  
@@ -33,17 +33,18 @@ Id : TPBUSJPP , Login : TPBUSJPP
 Wifi configuration : SSID = ESE_Bus_Network / PW = **********  
 Local settings : Time zone : Europe/Paris, Keyboard type : fr  
 
-- A free IP adress in the network is assigned to the Pi0 : 192.168.88.231
+- A free IP adress in the network is assigned to the RPi : 192.168.88.231
 - Connect the Pi0 to the PC via SSH using the following command : "ssh TPBUSJPP@192.168.88.231".
 
 ### Serial port  
 Loopback  
-We pluged the serial port of the Pi0 in such way that Rx and TX are loopped, and used Minicom to test it and verify the access to the loopback. 
+We pluged the serial port of the RPi in such way that Rx and TX are loopped, and used Minicom to test it and verify the access to the loopback. 
 
 Communication with the STM32  
-To communicate with the STM32, an independant UART port is used (UART 5, cf Lab session 1).  
-We modify the printf fonction to enable it to display on both serial port (UART 2 and UART 5).  
+To communicate with the STM32, an independant UART port is used (UART 4, cf Lab session 1).  
+We modify the printf fonction to enable it to display on both serial port (UART 2 and UART 4).  
 
-'''C
-//code 
-'''
+```C
+//redefinition of printf
+
+```
