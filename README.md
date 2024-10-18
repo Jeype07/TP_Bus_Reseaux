@@ -24,6 +24,6 @@ PUTCHAR_PROTOTYPE
 
 Download the image "Raspberry Pi OS (32-bit) Lite" on the SD card. Use Rpi_imager to install it on the SD card.
 - Host name : raspberrypiJPP
-- Id : TPBUSJPP , Login : tpbusjpp
+- Id : TPBUSJPP , Login : TPBUSJPP
 - Wifi configuration : SSID = ESE_Bus_Network / PW = **********
 - Local settings : Time zone : Europe/Paris, Keyboard type : fr
