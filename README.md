@@ -3,7 +3,12 @@
 ### Professor : C. Barès 
 ### Topics : Lab Sessions on communiaction between STM32F4 and Raspberry Pi, sensors using I2C, CAN, UART, and WiFi 
 
-##  Lab Session 1 : Communication between the pressure and temperature sensor BMP280 and the STM32F446 board using I²C. 
+##  Lab Session 1 : I2C Bus.  
+
+Objective: Interfacing a STM32 with I2C sensors  
+The first step is to set up communication between the microcontroller and sensors (temperature, pressure, accelerometer...) via the I2C bus.
+The sensor has two I2C components, which share the same bus. The STM32 will act as master on the bus.
+The STM32 code will be written in C language, using the HAL library.
 
 ```C
 /**
