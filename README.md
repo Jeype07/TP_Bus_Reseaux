@@ -1,7 +1,7 @@
 # TP_Bus_Reseaux #
 ### Authors : JP Thomar, P. Boulot
 ### Professor : C. Barès 
-### Topics : Lab Sessions on communiaction between STM32F4 and Raspberry Pi, sensors using I2C, CAN, UART, and WiFi 
+### Topics : Lab Sessions on communiaction between STM32F4 and Raspberry Pi0, and sensors using I2C, CAN, UART, and WiFi 
 
 ##  Lab Session 1 : I2C Bus.  
 
@@ -63,6 +63,32 @@ PUTCHAR_PROTOTYPE
 }
 /* USER CODE END 1 */
 ```
+
+Echo type test of the UART compilation chain and communication over USB : 
+in main loop : 
+```C
+
+uint8_t data; 
+while (1)
+	{
+		//code bloquant pour écho
+		HAL_UART_Receive( &huart2, &data, 1, HAL_MAX_DELAY );
+		printf("\r\n");
+		printf("%s\r\n",&data);
+		HAL_UART_Transmit( &huart2, &data, 1, HAL_MAX_DELAY );
+
+
+		/* USER CODE END WHILE */
+
+		/* USER CODE BEGIN 3 */
+	}
+```
+### I2C communication 
+
+#### Communication with BMP280
+Identification of BMP280
+
+
 ## Lab Session 2 : STM32 - Raspberry Pi 0 WIFI interfacing
 During this session we are going to establish the communication between the two boards Raspberry Pi 0 WIFI ("RPi" below) and STM32.
 
