@@ -47,7 +47,10 @@ CAN_HandleTypeDef hcan1;
 
 I2C_HandleTypeDef hi2c1;
 
+TIM_HandleTypeDef htim2;
+
 UART_HandleTypeDef huart4;
+UART_HandleTypeDef huart5;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
@@ -61,7 +64,10 @@ static void MX_USART2_UART_Init(void);
 static void MX_CAN1_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_UART4_Init(void);
+static void MX_UART5_Init(void);
+static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
+void User_UartCompleteCallback(UART_HandleTypeDef *huart);
 
 /* USER CODE END PFP */
 
@@ -103,8 +109,11 @@ int main(void)
 	MX_CAN1_Init();
 	MX_I2C1_Init();
 	MX_UART4_Init();
+	MX_UART5_Init();
+	MX_TIM2_Init();
 	/* USER CODE BEGIN 2 */
-
+	HAL_UART_RegisterCallback(&huart4, HAL_UART_RX_COMPLETE_CB_ID, User_UartCompleteCallback);
+	HAL_TIM_Base_Start_IT(&htim2);
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
@@ -127,14 +136,18 @@ int main(void)
 	printf("Mode : %x\r\n",buf[1]);
 
 
+	printf("Hello World !\r\n");
+
+
 	while (1)
 	{
+		/*
 		//code bloquant pour écho
 		HAL_UART_Receive( &huart2, &data, 1, HAL_MAX_DELAY );
 		printf("\r\n");
 		printf("%s\r\n",&data);
 		HAL_UART_Transmit( &huart2, &data, 1, HAL_MAX_DELAY );
-
+		 */
 
 		/* USER CODE END WHILE */
 
@@ -268,6 +281,51 @@ static void MX_I2C1_Init(void)
 }
 
 /**
+ * @brief TIM2 Initialization Function
+ * @param None
+ * @retval None
+ */
+static void MX_TIM2_Init(void)
+{
+
+	/* USER CODE BEGIN TIM2_Init 0 */
+
+	/* USER CODE END TIM2_Init 0 */
+
+	TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+	TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+	/* USER CODE BEGIN TIM2_Init 1 */
+
+	/* USER CODE END TIM2_Init 1 */
+	htim2.Instance = TIM2;
+	htim2.Init.Prescaler = 180-1;
+	htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+	htim2.Init.Period = 1000000-1;
+	htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+	htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+	if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+	{
+		Error_Handler();
+	}
+	sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+	if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+	{
+		Error_Handler();
+	}
+	sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+	sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+	if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+	{
+		Error_Handler();
+	}
+	/* USER CODE BEGIN TIM2_Init 2 */
+
+	/* USER CODE END TIM2_Init 2 */
+
+}
+
+/**
  * @brief UART4 Initialization Function
  * @param None
  * @retval None
@@ -297,6 +355,39 @@ static void MX_UART4_Init(void)
 	/* USER CODE BEGIN UART4_Init 2 */
 
 	/* USER CODE END UART4_Init 2 */
+
+}
+
+/**
+ * @brief UART5 Initialization Function
+ * @param None
+ * @retval None
+ */
+static void MX_UART5_Init(void)
+{
+
+	/* USER CODE BEGIN UART5_Init 0 */
+
+	/* USER CODE END UART5_Init 0 */
+
+	/* USER CODE BEGIN UART5_Init 1 */
+
+	/* USER CODE END UART5_Init 1 */
+	huart5.Instance = UART5;
+	huart5.Init.BaudRate = 115200;
+	huart5.Init.WordLength = UART_WORDLENGTH_8B;
+	huart5.Init.StopBits = UART_STOPBITS_1;
+	huart5.Init.Parity = UART_PARITY_NONE;
+	huart5.Init.Mode = UART_MODE_TX_RX;
+	huart5.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+	huart5.Init.OverSampling = UART_OVERSAMPLING_16;
+	if (HAL_UART_Init(&huart5) != HAL_OK)
+	{
+		Error_Handler();
+	}
+	/* USER CODE BEGIN UART5_Init 2 */
+
+	/* USER CODE END UART5_Init 2 */
 
 }
 
@@ -348,6 +439,7 @@ static void MX_GPIO_Init(void)
 	__HAL_RCC_GPIOC_CLK_ENABLE();
 	__HAL_RCC_GPIOH_CLK_ENABLE();
 	__HAL_RCC_GPIOA_CLK_ENABLE();
+	__HAL_RCC_GPIOD_CLK_ENABLE();
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 
 	/*Configure GPIO pin Output Level */
@@ -371,6 +463,11 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void User_UartCompleteCallback(UART_HandleTypeDef *huart)
+{
+	printf("j'ai reçu des datas\r\n");
+}
+
 
 /* USER CODE END 4 */
 
