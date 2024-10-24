@@ -11,7 +11,43 @@ The first step is to set up communication between the microcontroller and sensor
 The sensor has two I2C components, which share the same bus. The STM32 will act as master on the bus.
 The STM32 code will be written in C language, using the HAL library.
 
+### 2.1 BMP280 Sensor
+
+From the datasheet of the pressure sensor BMP280 we can determine the following pieces of information : 
+- possible I2C adresses for this component : 0x76 and 0x77
+- the register and the value to identify this component : register : 0xD0 "id", value : 0x58
+- the register and value to set the component in normal mode : [0:1] bits in control register 0xF4 have to be set to 11
+- the registers containing the component calibration : registers "calib25" to "calib00" with adresses 0xA1 to 0x88
+- the temperature records (and format) : "temp" registers contains the rax temperature measurement data output ut[19:0] at the adresses 0xFA, 0xFB, and 0xFC 
+- the pressure registers (and format) : "press" registers contains the raw pressure measurement data output up[19:0] at the adresses 0xF7, 0xF8, and 0xF9
+- the functions for calculating the temperature and pressure compensated, in 32-bit integer format : cf datasheet p.23
+
+### 2.2 STM32 Setup
+
+For this lab sessions, we will use the STM32446RETX board on STM32CubeIDE with the following connections : 
+- PB8 : I2C1_SDA
+- PB9 : I2C1_SCL
+- PA2 : USART2_TX (USB)
+- PA3 : USART2_RX
+- PA0 : UART4_TX (communication with raspberry pi)
+- PA1 : UART4_RX
+- PA12 : CAN1_TX
+- PA11 : CAN1_RX
+
+We modify now the printf fonction to so that it returns its strings on the UART to USB link, by adding the following code to the stm32f4xx_hal_msp.c file :  
+
 ```C
+/* USER CODE BEGIN PV */
+extern UART_HandleTypeDef huart2;
+/* USER CODE END PV */
+/* USER CODE BEGIN Macro */
+#ifdef __GNUC__ /* With GCC/RAISONANCE, small printf (option LD Linker->Libraries->Small printf    set to 'Yes') calls __io_putchar() */
+#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
+#else
+#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
+#endif /* __GNUC__ */
+/* USER CODE END Macro */
+/* USER CODE BEGIN 1 */
 /**
   * @brief  Retargets the C library printf function to the USART.
   * @param  None
@@ -25,6 +61,7 @@ PUTCHAR_PROTOTYPE
 
   return ch;
 }
+/* USER CODE END 1 */
 ```
 ## Lab Session 2 : STM32 - Raspberry Pi 0 WIFI interfacing
 During this session we are going to establish the communication between the two boards Raspberry Pi 0 WIFI ("RPi" below) and STM32.
