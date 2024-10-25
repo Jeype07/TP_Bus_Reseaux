@@ -153,10 +153,127 @@ We modify the printf fonction to enable it to display on both serial port (UART 
 
 ```
 
-## Lab Session 2 : REST interface
+## Lab Session 3 : REST interface
 Id : jpp , Login : TPBUSJPP  
 Wifi configuration : SSID = ESE_Bus_Network / PW = **********  
 Local settings : Time zone : Europe/Paris, Keyboard type : fr  
 
 - A free IP adress in the network is assigned to the RPi : 192.168.88.231
 - Connect the Pi0 to the PC via SSH using the following command : "ssh jpp@192.168.88.231".
+
+```py
+from flask import Flask
+app = Flask(__name__)
+
+@app.route('/')
+def hello_world():
+    return 'Hello, World!\n'
+```
+image page 1
+
+```py
+from flask import Flask
+app = Flask(__name__)
+
+@app.route('/')
+def hello_world():
+    return 'Hello, World!\n'
+
+welcome = "Welcome to 3ESE API!"
+
+@app.route('/api/welcome/')
+def api_welcome():
+    return welcome
+
+@app.route('/api/welcome/<int:index>')
+def api_welcome_index(index):
+    return welcome[index]
+```
+
+image page 2
+
+@app.route role : add elements to the url to run corresponding function, here to print welcome sting
+
+<int:index> role : add element to the url to run corresponding function, here print element at index position of welcome string
+
+1st solution
+```py
+import Flask
+from flask import jsonify
+
+app = Flask(__name__)
+
+@app.route('/')
+def hello_world():
+    return 'Hello, World!\n'
+
+welcome = "Welcome to 3ESE API!"
+
+@app.route('/api/welcome/')
+def api_welcome():
+    return welcome
+
+@app.route('/api/welcome/<int:index>')
+def api_welcome_index(index):
+    return json.dumps({"index": index, "val": welcome[index]})
+```
+image html
+
+image json
+
+```py
+import Flask
+from flask import jsonify
+
+app = Flask(__name__)
+
+@app.route('/')
+def hello_world():
+    return 'Hello, World!\n'
+
+welcome = "Welcome to 3ESE API!"
+
+@app.route('/api/welcome/')
+def api_welcome():
+    return welcome
+
+@app.route('/api/welcome/<int:index>')
+def api_welcome_index(index):
+    return jsonify({"index": index, "val": welcome[index]}), {"Content-Type": "application/json"}
+```
+
+image json 2
+
+error 404
+
+```py
+from flask import Flask
+from flask import jsonify
+from flask import render_template
+from flask import abort
+app = Flask(__name__)
+
+@app.route('/')
+def hello_world():
+    return 'Hello, World!\n'
+
+welcome = "Welcome to 3ESE API!"
+
+@app.route('/api/welcome/')
+def api_welcome():
+    return welcome
+
+@app.route('/api/welcome/<int:index>')
+def api_welcome_index(index):
+    if index<0 or index>len(welcome):
+        abort(404)
+    else:
+        return jsonify({"index": index, "val": welcome[index]}), {"Content-Type": "application/json"}
+
+@app.errorhandler(404)
+def page_not_found(error):
+    return render_template('page_not_found.html'), 404
+```
+image error 404
+
+ 
