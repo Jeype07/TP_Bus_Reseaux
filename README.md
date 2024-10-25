@@ -76,29 +76,23 @@ while (1)
 		printf("\r\n");
 		printf("%s\r\n",&data);
 		HAL_UART_Transmit( &huart2, &data, 1, HAL_MAX_DELAY );
-
-
-		/* USER CODE END WHILE */
-
-		/* USER CODE BEGIN 3 */
 	}
 ```
 ### I2C communication 
 
 #### Communication with BMP280
 Identification of BMP280
+Reading a register's data using I2C is as follows :  
+1 - send the address of the registry ID
+2 - receive 1 byte corresponding to the contents of the register
 
 ```C
 * Private define ------------------------------------------------------------*/
-/* USER CODE BEGIN PD */
 #define BMP_ADDR 0x77<<1
 #define BMP_ID_REG 0xD0
-#define BMP_ADDR_MODE 0xF4
-#define BMP_MODE 11101011 //111 oversampling p x16  010 oversampling t x2  11 mode normal
-/* USER CODE END PD */
 ```
-in the main loop
 
+in the main loop : 
 ```C
 uint8_t buf[10];
 
@@ -107,7 +101,16 @@ buf[0]= BMP_ID_REG;
 HAL_I2C_Master_Transmit(&hi2c1,BMP_ADDR,buf,1,HAL_MAX_DELAY);
 HAL_I2C_Master_Receive(&hi2c1,BMP_ADDR,buf,1,HAL_MAX_DELAY);
 printf("ID : %x\r\n",buf[0]);
+```
 
+
+```C
+* Private define ------------------------------------------------------------*/
+#define BMP_ADDR_MODE 0xF4
+#define BMP_MODE 01010111 //  010 oversampling t x2, 101 oversampling p x16,  11 mode normal
+```
+main loop : 
+```C
 //Configuration et vérification du capteur
 buf[0]= BMP_ADDR_MODE;
 buf[1]= BMP_MODE;
@@ -116,6 +119,8 @@ HAL_I2C_Master_Receive(&hi2c1,BMP_ADDR,buf,1,HAL_MAX_DELAY);
 printf("Registre : %x\r\n",buf[0]);
 printf("Mode : %x\r\n",buf[1]);
 ```
+
+
 ## Lab Session 2 : STM32 - Raspberry Pi 0 WIFI interfacing
 During this session we are going to establish the communication between the two boards Raspberry Pi 0 WIFI ("RPi" below) and STM32.
 
