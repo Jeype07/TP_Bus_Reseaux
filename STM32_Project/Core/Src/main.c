@@ -34,7 +34,7 @@
 #define BMP_ADDR 0x77<<1
 #define BMP_ID_REG 0xD0
 #define BMP_ADDR_MODE 0xF4
-#define BMP_MODE 11101011 //111 oversampling p x16  010 oversampling t x2  11 mode normal
+#define BMP_MODE 01010111 // 010 oversampling t x2  101 oversampling p x16	11 mode normal
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
