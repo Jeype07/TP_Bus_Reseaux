@@ -87,7 +87,7 @@ Reading a register's data using I2C is as follows :
 2 - receive 1 byte corresponding to the contents of the register
 
 We will use the following configuration: normal mode, oversampling pressure x16, temperature oversampling x2. We will thus modify the 0xF4 "ctrl_meas" register with the following value :  
-010 oversampling t x2, 101 oversampling p x16,  11 mode normal
+01010111 (010 oversampling t x2, 101 oversampling p x16,  11 mode normal)
 
 ```C
 * Private define ------------------------------------------------------------*/
