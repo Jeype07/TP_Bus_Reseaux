@@ -26,7 +26,10 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
+typedef struct
+{
 
+}BMP280_CalibData;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -68,7 +71,7 @@ static void MX_UART5_Init(void);
 static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
 void User_UartCompleteCallback(UART_HandleTypeDef *huart);
-
+void read_calibration_data();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -468,6 +471,25 @@ void User_UartCompleteCallback(UART_HandleTypeDef *huart)
 	printf("j'ai reçu des datas\r\n");
 }
 
+void read_calibration_data(BMP280_CalibData *calib)
+{
+	uint8_t &reg = 0x88;
+	uint8_t calib_data[24];
+	HAL_I2C_Master_Transmit(&hi2c1, BMP_ADDR, &reg, 1, HAL_MAX_DELAY);
+	HAL_I2C_Master_Receive(&hi2c1, BMP_ADDR, calib_data, 24, HAL_MAX_DELAY);
+	calib->dig_T1 = (uint16_t)((calib_data[1] << 8) | calib_data[0]);
+	calib->dig_T2 = (int16_t)((calib_data[3] << 8) | calib_data[2]);
+	calib->dig_T3 = (int16_t)((calib_data[5] << 8) | calib_data[4]);
+	calib->dig_P1 = (uint16_t)((calib_data[7] << 8) | calib_data[6]);
+	calib->dig_P2 = (int16_t)((calib_data[9] << 8) | calib_data[8]);
+	calib->dig_P3 = (int16_t)((calib_data[11] << 8) | calib_data[10]);
+	calib->dig_P4 = (int16_t)((calib_data[13] << 8) | calib_data[12]);
+	calib->dig_P5 = (int16_t)((calib_data[15] << 8) | calib_data[14]);
+	calib->dig_P6 = (int16_t)((calib_data[17] << 8) | calib_data[16]);
+	calib->dig_P7 = (int16_t)((calib_data[19] << 8) | calib_data[18]);
+	calib->dig_P8 = (int16_t)((calib_data[21] << 8) | calib_data[20]);
+	calib->dig_P9 = (int16_t)((calib_data[23] << 8) | calib_data[22]);
+}
 
 /* USER CODE END 4 */
 

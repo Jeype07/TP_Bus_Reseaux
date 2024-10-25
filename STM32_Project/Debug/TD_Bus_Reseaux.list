@@ -39,13 +39,13 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  17 .debug_line   0001645a  00000000  00000000  00043c80  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    000d8818  00000000  00000000  0005a0da  2**0
+ 18 .debug_str    000d8826  00000000  00000000  0005a0da  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000043  00000000  00000000  001328f2  2**0
+ 19 .comment      00000043  00000000  00000000  00132900  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  000055b4  00000000  00000000  00132938  2**2
+ 20 .debug_frame  000055b4  00000000  00000000  00132944  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 21 .debug_line_str 0000006e  00000000  00000000  00137eec  2**0
+ 21 .debug_line_str 0000007c  00000000  00000000  00137ef8  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -491,7 +491,7 @@ int main(void)
  800060c:	23f4      	movs	r3, #244	@ 0xf4
  800060e:	713b      	strb	r3, [r7, #4]
 	buf[1]= BMP_MODE;
- 8000610:	2353      	movs	r3, #83	@ 0x53
+ 8000610:	2349      	movs	r3, #73	@ 0x49
  8000612:	717b      	strb	r3, [r7, #5]
 	HAL_I2C_Master_Transmit(&hi2c1,BMP_ADDR,buf,1,HAL_MAX_DELAY);
  8000614:	1d3a      	adds	r2, r7, #4
