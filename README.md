@@ -152,3 +152,11 @@ We modify the printf fonction to enable it to display on both serial port (UART 
 //redefinition of printf
 
 ```
+
+## Lab Session 2 : REST interface
+Id : jpp , Login : TPBUSJPP  
+Wifi configuration : SSID = ESE_Bus_Network / PW = **********  
+Local settings : Time zone : Europe/Paris, Keyboard type : fr  
+
+- A free IP adress in the network is assigned to the RPi : 192.168.88.231
+- Connect the Pi0 to the PC via SSH using the following command : "ssh jpp@192.168.88.231".
