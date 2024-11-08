@@ -183,6 +183,10 @@ while (1)
 	*temp = (int32_t)(((raw_data[3] << 16) | (raw_data[4] << 8) | raw_data[5]) >> 4);
 }
 ```
+
+#### Calculation of compensated temperature and pressure 
+
+
 ## Lab Session 2 : STM32 - Raspberry Pi 0 WIFI interfacing
 During this session we are going to establish the communication between the two boards Raspberry Pi 0 WIFI ("RPi" below) and STM32.
 
