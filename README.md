@@ -339,4 +339,19 @@ def page_not_found(error):
 ```
 image error 404
 
+## TP4 : CAN Bus
+
+Objective: Implementation of a device (Stepper motor) on CAN bus
+
+The STM32F446 boards have an integrated CAN controller. We need a CAN transceiver to use it, and we will choose the TJA1050. It works with a 5V supply and has 3.3V compatible I/O.  
+We will use the CAN bus to drive a stepper motor module. This module is powered by +12V. All the information needed to use this module is available in the document nammed "motor" of this repository.  
+
+We need to set the CAN Baud rate to 500kbit/s to use this motor. It seems that it is mainly the ratio seg2/(seg1+seg2), which determines the moment of decision, which must be around 87%. We can use the following calculator: http://www.bittiming.can-wiki.info/  
+
+psc : 5  
+seg 1 : 15 times  
+seg 2 : 2 times  
+
+
+
  
