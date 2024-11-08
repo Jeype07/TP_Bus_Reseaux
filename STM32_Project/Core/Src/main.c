@@ -26,18 +26,37 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-typedef struct
-{
 
-}BMP280_CalibData;
+typedef struct { // structure containing calibration registers names (datasheet p.21)
+    uint16_t dig_T1;  //0x88/0x89
+    int16_t dig_T2;   //0x8A/0x8B
+    int16_t dig_T3;
+    uint16_t dig_P1;
+    int16_t dig_P2;
+    int16_t dig_P3;
+    int16_t dig_P4;
+    int16_t dig_P5;
+    int16_t dig_P6;
+    int16_t dig_P7;
+    int16_t dig_P8;  //0x9C/0x9D
+    int16_t dig_P9;  //0x9E/0x9F
+} Struct_CalibDataNames;
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define BMP_ADDR 0x77<<1
-#define BMP_ID_REG 0xD0
-#define BMP_ADDR_MODE 0xF4
+#define BMP_ADDR 0x77<<1 // BMP280 address
+#define BMP_ID_REG 0xD0 // adress of the ID register
+
+#define BMP_ADDR_MODE 0xF4 // address of the "ctrl_meas" reg to set the modes/config
 #define BMP_MODE 01010111 // 010 oversampling t x2  101 oversampling p x16	11 mode normal
+
+#define BMP_CALIB_REG 0x88    // 1st calibration register address
+#define BMP_CALIB_DATA_LENGTH 24 // size in bytes of calibration data
+
+#define BMP_TEMP_PRESS_REG 0xF7 // 1st press register address
+#define BMP_TEMP_PRESS_DATA_LENGTH 6 // size of press + temp registers
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -121,25 +140,46 @@ int main(void)
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
-	uint8_t data;
-	uint8_t buf[10];
+	printf("==== TP BUS & NETWORK ====");
+
+	// Variables initialization, buffers
+	uint8_t id_buf[1];
+	uint8_t data_config[2];
+	uint8_t calib_reg[1];
+	uint8_t calib_data[BMP_CALIB_DATA_LENGTH];
+	Struct_CalibDataNames *calib_names;
+	int32_t *temp; int32_t *press; // raw values
 
 	//question réponse capteur avec I2C pour ID capteur
-	buf[0]= BMP_ID_REG;
-	HAL_I2C_Master_Transmit(&hi2c1,BMP_ADDR,buf,1,HAL_MAX_DELAY);
-	HAL_I2C_Master_Receive(&hi2c1,BMP_ADDR,buf,1,HAL_MAX_DELAY);
-	printf("ID : %x\r\n",buf[0]);
+	id_buf[0]= BMP_ID_REG;
+	HAL_I2C_Master_Transmit(&hi2c1,BMP_ADDR,id_buf,1,HAL_MAX_DELAY);
+	HAL_I2C_Master_Receive(&hi2c1,BMP_ADDR,id_buf,1,HAL_MAX_DELAY);
+	printf("BMP280 ID : %x\r\n",id_buf[0]);
 
 	//Configuration et vérification du capteur
-	buf[0]= BMP_ADDR_MODE;
-	buf[1]= BMP_MODE;
-	HAL_I2C_Master_Transmit(&hi2c1,BMP_ADDR,buf,1,HAL_MAX_DELAY);
-	HAL_I2C_Master_Receive(&hi2c1,BMP_ADDR,buf,1,HAL_MAX_DELAY);
-	printf("Registre : %x\r\n",buf[0]);
-	printf("Mode : %x\r\n",buf[1]);
+	data_config[0]= BMP_ADDR_MODE;
+	data_config[1]= BMP_MODE;
+	HAL_I2C_Master_Transmit(&hi2c1,BMP_ADDR,data_config,2,HAL_MAX_DELAY);
+	HAL_I2C_Master_Receive(&hi2c1,BMP_ADDR,data_config,2,HAL_MAX_DELAY);
+	printf("Register : %x\r\n",data_config[0]);
+	printf("Mode : %x\r\n",data_config[1]);
 
-
-	printf("Hello World !\r\n");
+	// Retrieving of calibration Data
+	calib_reg[0] = BMP_CALIB_REG;
+	HAL_I2C_Master_Transmit(&hi2c1, BMP_ADDR, calib_reg, 1, HAL_MAX_DELAY);
+	HAL_I2C_Master_Receive(&hi2c1, BMP_ADDR, calib_data, BMP_CALIB_DATA_LENGTH, HAL_MAX_DELAY);
+	calib_names->dig_T1 = (uint16_t)((calib_data[1] << 8) | calib_data[0]);
+	calib_names->dig_T2 = (int16_t)((calib_data[3] << 8) | calib_data[2]);
+	calib_names->dig_T3 = (int16_t)((calib_data[5] << 8) | calib_data[4]);
+	calib_names->dig_P1 = (uint16_t)((calib_data[7] << 8) | calib_data[6]);
+	calib_names->dig_P2 = (int16_t)((calib_data[9] << 8) | calib_data[8]);
+	calib_names->dig_P3 = (int16_t)((calib_data[11] << 8) | calib_data[10]);
+	calib_names->dig_P4 = (int16_t)((calib_data[13] << 8) | calib_data[12]);
+	calib_names->dig_P5 = (int16_t)((calib_data[15] << 8) | calib_data[14]);
+	calib_names->dig_P6 = (int16_t)((calib_data[17] << 8) | calib_data[16]);
+	calib_names->dig_P7 = (int16_t)((calib_data[19] << 8) | calib_data[18]);
+	calib_names->dig_P8 = (int16_t)((calib_data[21] << 8) | calib_data[20]);
+	calib_names->dig_P9 = (int16_t)((calib_data[23] << 8) | calib_data[22]);
 
 
 	while (1)
@@ -151,6 +191,14 @@ int main(void)
 		printf("%s\r\n",&data);
 		HAL_UART_Transmit( &huart2, &data, 1, HAL_MAX_DELAY );
 		 */
+
+		//Retrieving the raw temp and press values
+		uint8_t raw_data[BMP_TEMP_PRESS_DATA_LENGTH];
+		uint8_t reg = BMP_TEMP_PRESS_REG;
+		HAL_I2C_Master_Transmit(&hi2c1, BMP_ADDR, &reg, 1, HAL_MAX_DELAY);
+		HAL_I2C_Master_Receive(&hi2c1, BMP_ADDR, raw_data, BMP_TEMP_PRESS_DATA_LENGTH, HAL_MAX_DELAY);
+		*press = (int32_t)(((raw_data[0] << 16) | (raw_data[1] << 8) | raw_data[2]) >> 4);
+		*temp = (int32_t)(((raw_data[3] << 16) | (raw_data[4] << 8) | raw_data[5]) >> 4);
 
 		/* USER CODE END WHILE */
 
@@ -470,27 +518,6 @@ void User_UartCompleteCallback(UART_HandleTypeDef *huart)
 {
 	printf("j'ai reçu des datas\r\n");
 }
-
-void read_calibration_data(BMP280_CalibData *calib)
-{
-	uint8_t &reg = 0x88;
-	uint8_t calib_data[24];
-	HAL_I2C_Master_Transmit(&hi2c1, BMP_ADDR, &reg, 1, HAL_MAX_DELAY);
-	HAL_I2C_Master_Receive(&hi2c1, BMP_ADDR, calib_data, 24, HAL_MAX_DELAY);
-	calib->dig_T1 = (uint16_t)((calib_data[1] << 8) | calib_data[0]);
-	calib->dig_T2 = (int16_t)((calib_data[3] << 8) | calib_data[2]);
-	calib->dig_T3 = (int16_t)((calib_data[5] << 8) | calib_data[4]);
-	calib->dig_P1 = (uint16_t)((calib_data[7] << 8) | calib_data[6]);
-	calib->dig_P2 = (int16_t)((calib_data[9] << 8) | calib_data[8]);
-	calib->dig_P3 = (int16_t)((calib_data[11] << 8) | calib_data[10]);
-	calib->dig_P4 = (int16_t)((calib_data[13] << 8) | calib_data[12]);
-	calib->dig_P5 = (int16_t)((calib_data[15] << 8) | calib_data[14]);
-	calib->dig_P6 = (int16_t)((calib_data[17] << 8) | calib_data[16]);
-	calib->dig_P7 = (int16_t)((calib_data[19] << 8) | calib_data[18]);
-	calib->dig_P8 = (int16_t)((calib_data[21] << 8) | calib_data[20]);
-	calib->dig_P9 = (int16_t)((calib_data[23] << 8) | calib_data[22]);
-}
-
 /* USER CODE END 4 */
 
 /**
