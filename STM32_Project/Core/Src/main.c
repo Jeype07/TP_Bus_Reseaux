@@ -67,8 +67,6 @@ typedef struct Struct_CalibDataNames{ // structure containing calibration regist
 /* Private variables ---------------------------------------------------------*/
 CAN_HandleTypeDef hcan1;
 
-I2C_HandleTypeDef hi2c1;
-
 TIM_HandleTypeDef htim2;
 
 UART_HandleTypeDef huart4;
@@ -84,7 +82,6 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_CAN1_Init(void);
-static void MX_I2C1_Init(void);
 static void MX_UART4_Init(void);
 static void MX_UART5_Init(void);
 static void MX_TIM2_Init(void);
@@ -96,7 +93,7 @@ void read_calibration_data();
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-// Returns temperature in DegC, double precision. Output value of “51.23�? equals 51.23 DegC.
+// Returns temperature in DegC, double precision. Output value of “51.23�? equals 51.23 DegC.
 // t_fine carries fine temperature as global value
 int32_t t_fine;
 double bmp280_compensate_T_double(int32_t adc_T)
@@ -110,7 +107,7 @@ double bmp280_compensate_T_double(int32_t adc_T)
 	return T;
 }
 
-// Returns pressure in Pa as double. Output value of “96386.2�? equals 96386.2 Pa = 963.862 hPa
+// Returns pressure in Pa as double. Output value of “96386.2�? equals 96386.2 Pa = 963.862 hPa
 double bmp280_compensate_P_double(int32_t adc_P)
 {
 	double var1, var2, p;
@@ -165,26 +162,29 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   MX_CAN1_Init();
-  MX_I2C1_Init();
   MX_UART4_Init();
   MX_UART5_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
 	HAL_UART_RegisterCallback(&huart4, HAL_UART_RX_COMPLETE_CB_ID, User_UartCompleteCallback);
 	HAL_TIM_Base_Start_IT(&htim2);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-	printf("==== TP BUS & NETWORK ====");
-
+	printf("==== TP BUS & NETWORK ====\r\n");
+/*
 	// Variables initialization, buffers
+	//I2C
 	uint8_t id_buf[1];
 	uint8_t data_config[2];
 	uint8_t calib_reg[1];
 	uint8_t calib_data[BMP_CALIB_DATA_LENGTH];
 	Struct_CalibDataNames *calib_names;
 	int32_t *temp, *press; // raw values
+
+
 
 	//question réponse capteur avec I2C pour ID capteur
 	id_buf[0]= BMP_ID_REG;
@@ -216,8 +216,25 @@ int main(void)
 	calib_names->dig_P7 = (int16_t)((calib_data[19] << 8) | calib_data[18]);
 	calib_names->dig_P8 = (int16_t)((calib_data[21] << 8) | calib_data[20]);
 	calib_names->dig_P9 = (int16_t)((calib_data[23] << 8) | calib_data[22]);
+*/
+	// Variables CAN
+	CAN_TxHeaderTypeDef   TxHeader;
+	uint8_t               TxData[3];
+	uint32_t              TxMailbox;
+
+	// Motor pilot : +90 degree
+	TxHeader.IDE = CAN_ID_STD;
+	TxHeader.StdId = 0x61;
+	TxHeader.RTR = CAN_RTR_DATA;
+	TxHeader.DLC = 2;
+	TxHeader.TransmitGlobalTime = DISABLE;
+
+	TxData[0] = 90; 	//angle
+	TxData[1] = 0x00;	//positive
+	//TxData[2] = 0xA0;	//speed
 
 
+	HAL_CAN_Start(&hcan1);
 	while (1)
 	{
 		/*
@@ -229,13 +246,27 @@ int main(void)
 		 */
 
 		//Retrieving the raw temp and press values
-		uint8_t raw_data[BMP_TEMP_PRESS_DATA_LENGTH];
-		uint8_t reg = BMP_TEMP_PRESS_REG;
-		HAL_I2C_Master_Transmit(&hi2c1, BMP_ADDR, &reg, 1, HAL_MAX_DELAY);
-		HAL_I2C_Master_Receive(&hi2c1, BMP_ADDR, raw_data, BMP_TEMP_PRESS_DATA_LENGTH, HAL_MAX_DELAY);
-		*press = (int32_t)(((raw_data[0] << 16) | (raw_data[1] << 8) | raw_data[2]) >> 4);
-		*temp = (int32_t)(((raw_data[3] << 16) | (raw_data[4] << 8) | raw_data[5]) >> 4);
+		//uint8_t raw_data[BMP_TEMP_PRESS_DATA_LENGTH];
+		//uint8_t reg = BMP_TEMP_PRESS_REG;
+		//HAL_I2C_Master_Transmit(&hi2c1, BMP_ADDR, &reg, 1, HAL_MAX_DELAY);
+		//HAL_I2C_Master_Receive(&hi2c1, BMP_ADDR, raw_data, BMP_TEMP_PRESS_DATA_LENGTH, HAL_MAX_DELAY);
+		//*press = (int32_t)(((raw_data[0] << 16) | (raw_data[1] << 8) | raw_data[2]) >> 4);
+		//*temp = (int32_t)(((raw_data[3] << 16) | (raw_data[4] << 8) | raw_data[5]) >> 4);
 
+		if(HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox)!= HAL_OK){
+			printf("Erreur de communication sur le bus CAN\r\n");
+			return 0;
+		}
+		else{
+			printf("Commnication établie\r\n");
+		}
+		if(TxData[1]==1){
+				TxData[1] = 0;
+		}
+		else{
+			TxData[1]=1;
+		}
+		HAL_Delay(1000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -330,40 +361,6 @@ static void MX_CAN1_Init(void)
   /* USER CODE BEGIN CAN1_Init 2 */
 
   /* USER CODE END CAN1_Init 2 */
-
-}
-
-/**
-  * @brief I2C1 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_I2C1_Init(void)
-{
-
-  /* USER CODE BEGIN I2C1_Init 0 */
-
-  /* USER CODE END I2C1_Init 0 */
-
-  /* USER CODE BEGIN I2C1_Init 1 */
-
-  /* USER CODE END I2C1_Init 1 */
-  hi2c1.Instance = I2C1;
-  hi2c1.Init.ClockSpeed = 100000;
-  hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
-  hi2c1.Init.OwnAddress1 = 0;
-  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-  hi2c1.Init.OwnAddress2 = 0;
-  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
-  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN I2C1_Init 2 */
-
-  /* USER CODE END I2C1_Init 2 */
 
 }
 
