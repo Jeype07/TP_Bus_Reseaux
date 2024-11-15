@@ -339,7 +339,7 @@ def page_not_found(error):
 ```
 image error 404
 
-## TP4 : CAN Bus
+## Lab session 4 : CAN Bus
 
 Objective: Implementation of a device (Stepper motor) on CAN bus
 
@@ -348,9 +348,58 @@ We will use the CAN bus to drive a stepper motor module. This module is powered 
 
 We need to set the CAN Baud rate to 500kbit/s to use this motor. It seems that it is mainly the ratio seg2/(seg1+seg2), which determines the moment of decision, which must be around 87%. We can use the following calculator: http://www.bittiming.can-wiki.info/  
 
-psc : 5  
+We find these values to obtain 500kbits/s:  
+PSC = 5  
 seg 1 : 15 times  
 seg 2 : 2 times  
+
+### 5.1 Pilotage du moteur
+
+First, a simple code is set up that moves the motor 90° in one direction and then 90° in the other, with a period of 1 second.  
+
+The following HAL primitives are used for this:
+HAL_StatusTypeDef HAL_CAN_Start (CAN_HandleTypeDef * hcan)  
+to activate the CAN module and  
+
+HAL_StatusTypeDef HAL_CAN_AddTxMessage (CAN_HandleTypeDef * hcan, CAN_TxHeaderTypeDef * pHeader, uint8_t aData[], uint32_t * pTxMailbox)  
+to send a message.  
+
+In the main loop : 
+```C
+// Variables CAN
+CAN_TxHeaderTypeDef   TxHeader;
+uint8_t               TxData[3];
+uint32_t              TxMailbox;
+
+// Motor pilot : +90 degree
+TxHeader.IDE = CAN_ID_STD;
+TxHeader.StdId = 0x61;
+TxHeader.RTR = CAN_RTR_DATA;
+TxHeader.DLC = 2;
+TxHeader.TransmitGlobalTime = DISABLE;
+
+TxData[0] = 90; 	//angle
+TxData[1] = 0x00;	//positive
+//TxData[2] = 0xA0;	//speed
+
+HAL_CAN_Start(&hcan1);
+```
+Infinite loop : 
+```C
+if(HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox)!= HAL_OK){
+	printf("Erreur de communication sur le bus CAN\r\n");
+	return 0;
+}
+else{
+	printf("Commnication établie\r\n");
+}
+if(TxData[1]==1){
+		TxData[1] = 0;
+}
+else{
+	TxData[1]=1;
+}
+```
 
 
 
