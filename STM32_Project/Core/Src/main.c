@@ -27,7 +27,7 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
-typedef struct Struct_CalibDataNames{ // structure containing calibration registers names (datasheet p.21)
+typedef struct BMP280_CalibDataNames{ // structure containing calibration registers names (datasheet p.21)
     uint16_t dig_T1;  //0x88/0x89
     int16_t dig_T2;   //0x8A/0x8B
     int16_t dig_T3;
@@ -40,7 +40,11 @@ typedef struct Struct_CalibDataNames{ // structure containing calibration regist
     int16_t dig_P7;
     int16_t dig_P8;  //0x9C/0x9D
     int16_t dig_P9;  //0x9E/0x9F
-} Struct_CalibDataNames;
+} BMP280_CalibDataNames;
+
+typedef int32_t BMP280_S32_t;
+typedef uint32_t BMP280_U32_t;
+typedef int64_t BMP280_S64_t;
 
 /* USER CODE END PTD */
 
@@ -76,7 +80,7 @@ UART_HandleTypeDef huart5;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-Struct_CalibDataNames reg;
+BMP280_CalibDataNames reg;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -91,45 +95,58 @@ static void MX_I2C1_Init(void);
 /* USER CODE BEGIN PFP */
 void User_UartCompleteCallback(UART_HandleTypeDef *huart);
 void read_calibration_data();
+void read_raw_t_p(int32_t *raw_press, int32_t *raw_temp);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
-// Returns temperature in DegC, double precision. Output value of “51.23�? equals 51.23 DegC.
+void read_raw_t_p(int32_t *raw_press, int32_t *raw_temp){
+	uint8_t raw_data[BMP_TEMP_PRESS_DATA_LENGTH];
+	uint8_t reg = BMP_TEMP_PRESS_REG;
+	if (HAL_I2C_Master_Transmit(&hi2c1, BMP_ADDR, &reg, 1, HAL_MAX_DELAY)==HAL_OK){
+		HAL_I2C_Master_Receive(&hi2c1, BMP_ADDR, raw_data, BMP_TEMP_PRESS_DATA_LENGTH, HAL_MAX_DELAY);
+		*raw_press = (int32_t)(((raw_data[0] << 16) | (raw_data[1] << 8) | raw_data[2]) >> 4);
+		*raw_temp = (int32_t)(((raw_data[3] << 16) | (raw_data[4] << 8) | raw_data[5]) >> 4);
+		printf("Raw Temp = %ld,\r\nRaw Press = %ld\r\n", raw_temp, raw_press);
+	}
+	else{
+		printf("Erreur de communication sur le bus bus I2C\r\n");
+		return 0;
+	}
+}
+// Returns temperature in DegC, resolution is 0.01 DegC. Output value of “5123” equals 51.23 DegC.
 // t_fine carries fine temperature as global value
 int32_t t_fine;
-double bmp280_compensate_T_double(int32_t adc_T)
+BMP280_S32_t bmp280_compensate_T_int32(BMP280_S32_t adc_T,BMP280_CalibDataNames *calib_names)
 {
-	double var1, var2, T;
-	var1 = (((double)adc_T)/16384.0 - ((double)reg.dig_T1)/1024.0) * ((double)reg.dig_T2);
-	var2 = ((((double)adc_T)/131072.0 - ((double)reg.dig_T1)/8192.0) *
-	(((double)adc_T)/131072.0 - ((double) reg.dig_T1)/8192.0)) * ((double)reg.dig_T3);
-	t_fine = (int32_t)(var1 + var2);
-	T = (var1 + var2) / 5120.0;
+	BMP280_S32_t var1, var2, T;
+	var1 = ((((adc_T>>3)-((BMP280_S32_t)calib_names->dig_T1<<1))) * ((BMP280_S32_t)calib_names->dig_T2)) >> 11;
+	var2 = (((((adc_T>>4)-((BMP280_S32_t)calib_names->dig_T1)) * ((adc_T>>4)-((BMP280_S32_t)calib_names->dig_T1))) >> 12) * ((BMP280_S32_t)calib_names->dig_T3)) >> 14;
+	t_fine = var1 + var2;
+	T = (t_fine * 5 + 128) >> 8;
 	return T;
 }
 
-// Returns pressure in Pa as double. Output value of “96386.2�? equals 96386.2 Pa = 963.862 hPa
-double bmp280_compensate_P_double(int32_t adc_P)
+// Returns pressure in Pa as unsigned 32 bit integer. Output value of “96386” equals 96386 Pa = 963.86 hPa
+BMP280_U32_t bmp280_compensate_P_int64(BMP280_S32_t adc_P, BMP280_CalibDataNames *calib_names)
 {
-	double var1, var2, p;
-	var1 = ((double)t_fine/2.0) - 64000.0;
-	var2 = var1 * var1 * ((double)reg.dig_P6) / 32768.0;
-	var2 = var2 + var1 * ((double)reg.dig_P5) * 2.0;
-	var2 = (var2/4.0)+(((double)reg.dig_P4) * 65536.0);
-	var1 = (((double)reg.dig_P3) * var1 * var1 / 524288.0 + ((double)reg.dig_P2) * var1) / 524288.0;
-	var1 = (1.0 + var1 / 32768.0)*((double)reg.dig_P1);
-	if (var1 == 0.0)
+	BMP280_S64_t var1, var2, p;
+	var1 = ((BMP280_S64_t)t_fine)-128000;
+	var2 = var1 * var1 * (BMP280_S64_t)calib_names->dig_P6;
+	var2 = var2 + ((var1*(BMP280_S64_t)calib_names->dig_P5)<<17);
+	var2 = var2 + (((BMP280_S64_t)calib_names->dig_P4)<<35);
+	var1 = ((var1 * var1 * (BMP280_S64_t)calib_names->dig_P3)>>8) + ((var1 * (BMP280_S64_t)calib_names->dig_P2)<<12);
+	var1 = (((((BMP280_S64_t)1)<<47)+var1))*((BMP280_S64_t)calib_names->dig_P1)>>33;
+	if (var1 == 0)
 	{
-		return 0; // avoid exception caused by division by zero
+	return 0; // avoid exception caused by division by zero
 	}
-	p = 1048576.0 - (double)adc_P;
-	p = (p - (var2 / 4096.0)) * 6250.0 / var1;
-	var1 = ((double)reg.dig_P9) * p * p / 2147483648.0;
-	var2 = p * ((double)reg.dig_P8) / 32768.0;
-	p = p + (var1 + var2 + ((double)reg.dig_P7)) / 16.0;
-	return p;
+	p = 1048576-adc_P;
+	p = (((p<<31)-var2)*3125)/var1;
+	var1 = (((BMP280_S64_t)calib_names->dig_P9) * (p>>13) * (p>>13)) >> 25;
+	var2 = (((BMP280_S64_t)calib_names->dig_P8) * p) >> 19;
+	p = ((p + var1 + var2) >> 8) + (((BMP280_S64_t)calib_names->dig_P7)<<4);
+	return (BMP280_U32_t)p;
 }
 
 /* USER CODE END 0 */
@@ -178,17 +195,16 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	printf("==== TP BUS & NETWORK ====\r\n");
-/*
+
 	// Variables initialization, buffers
 	//I2C
 	uint8_t id_buf[1];
 	uint8_t data_config[2];
 	uint8_t calib_reg[1];
 	uint8_t calib_data[BMP_CALIB_DATA_LENGTH];
-	Struct_CalibDataNames *calib_names;
-	int32_t *temp, *press; // raw values
-
-
+	BMP280_CalibDataNames *calib_names;
+	int32_t raw_temp;
+	int32_t raw_press;
 
 	//question réponse capteur avec I2C pour ID capteur
 	id_buf[0]= BMP_ID_REG;
@@ -220,7 +236,7 @@ int main(void)
 	calib_names->dig_P7 = (int16_t)((calib_data[19] << 8) | calib_data[18]);
 	calib_names->dig_P8 = (int16_t)((calib_data[21] << 8) | calib_data[20]);
 	calib_names->dig_P9 = (int16_t)((calib_data[23] << 8) | calib_data[22]);
-*/
+/*
 	// Variables CAN
 	CAN_TxHeaderTypeDef   TxHeader;
 	uint8_t               TxData[3];
@@ -238,7 +254,7 @@ int main(void)
 	//TxData[2] = 0xA0;	//speed
 
 
-	HAL_CAN_Start(&hcan1);
+	HAL_CAN_Start(&hcan1);*/
 	while (1)
 	{
 		/*
@@ -250,13 +266,13 @@ int main(void)
 		 */
 
 		//Retrieving the raw temp and press values
-		//uint8_t raw_data[BMP_TEMP_PRESS_DATA_LENGTH];
-		//uint8_t reg = BMP_TEMP_PRESS_REG;
-		//HAL_I2C_Master_Transmit(&hi2c1, BMP_ADDR, &reg, 1, HAL_MAX_DELAY);
-		//HAL_I2C_Master_Receive(&hi2c1, BMP_ADDR, raw_data, BMP_TEMP_PRESS_DATA_LENGTH, HAL_MAX_DELAY);
-		//*press = (int32_t)(((raw_data[0] << 16) | (raw_data[1] << 8) | raw_data[2]) >> 4);
-		//*temp = (int32_t)(((raw_data[3] << 16) | (raw_data[4] << 8) | raw_data[5]) >> 4);
+		read_raw_t_p(&raw_temp, &raw_press);
 
+		// Compensated temperature and pressure
+		int32_t temp = bmp280_compensate_T_int32(raw_temp, calib_names);
+		int32_t press = bmp280_compensate_P_int64(raw_press, calib_names);
+		printf("Compensated Temp = %d C\r\nCompensated Press = %d Pa\r\n", temp/100, press/256);
+		/*
 		if(HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox)!= HAL_OK){
 			printf("Erreur de communication sur le bus CAN\r\n");
 			return 0;
@@ -269,7 +285,7 @@ int main(void)
 		}
 		else{
 			TxData[1]=1;
-		}
+		}*/
 		HAL_Delay(1000);
     /* USER CODE END WHILE */
 
