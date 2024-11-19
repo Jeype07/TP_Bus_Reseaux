@@ -273,7 +273,7 @@ int main(void){
 ## Lab Session 2 : STM32 - Raspberry Pi 0 WIFI interfacing
 During this session we are going to establish the communication between the two boards Raspberry Pi 0 WIFI ("RPi" below) and STM32.
 
-### Setting the Raspberry Pi 0 Wifi
+### 3.1 Setting and start up of the Raspberry Pi 0 Wifi
 First, we follow a few steps to prepare the RPi: 
 
 - Download the image "Raspberry Pi OS (32-bit) Lite" on the SD card. 
@@ -286,7 +286,7 @@ Local settings : Time zone : Europe/Paris, Keyboard type : fr
 - A free IP adress in the network is assigned to the RPi : 192.168.88.231
 - Connect the Pi0 to the PC via SSH using the following command : "ssh TPBUSJPP@192.168.88.231".
 
-### Serial port  
+### 3.2 Serial port  
 Loopback  
 We pluged the serial port of the RPi in such way that Rx and TX are loopped, and used Minicom to test it and verify the access to the loopback. 
 
