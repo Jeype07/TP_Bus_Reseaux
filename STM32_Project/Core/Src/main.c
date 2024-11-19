@@ -178,7 +178,7 @@ void read_raw_t_p(int32_t *raw_press, int32_t *raw_temp){
 		HAL_I2C_Master_Receive(&hi2c1, BMP_ADDR, raw_data, BMP_TEMP_PRESS_DATA_LENGTH, HAL_MAX_DELAY);
 		*raw_press = (int32_t)(((raw_data[0] << 16) | (raw_data[1] << 8) | raw_data[2]) >> 4);
 		*raw_temp = (int32_t)(((raw_data[3] << 16) | (raw_data[4] << 8) | raw_data[5]) >> 4);
-		printf("Raw Temp = %d,\r\nRaw Press = %d\r\n", raw_temp, raw_press);
+		printf("Raw Temp = %ld,\r\nRaw Press = %ld\r\n", raw_temp, raw_press);
 	}
 	else{
 		printf("Erreur de communication sur le bus bus I2C\r\n");
@@ -314,6 +314,11 @@ int main(void)
 	/* USER CODE BEGIN WHILE */
 	printf("==== TP BUS & NETWORK ====\r\n");
 
+	// get id, calib, and config data
+	querry_ID_BMP();
+	querry_Config_BMP();
+	querry_Calib_BMP();
+
 	HAL_UART_Receive_IT (&huart4, (uint8_t *) UART4_rxBuffer, SIZE_OF_USART4_BUF); //usart rasp pi
 
 
@@ -322,6 +327,7 @@ int main(void)
 
 
 		/* USER CODE END WHILE */
+		get_BMP_meas();
 
 		/* USER CODE BEGIN 3 */
 	}
