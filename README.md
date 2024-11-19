@@ -296,6 +296,15 @@ We modify the printf fonction to enable it to display on both serial port (UART 
 
 ```C
 //redefinition of printf
+PUTCHAR_PROTOTYPE
+{
+  /* Place your implementation of fputc here */
+  /* e.g. write a character to the USART2 and Loop until the end of transmission */
+  HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, 0xFFFF);
+  HAL_UART_Transmit(&huart4, (uint8_t *)&ch, 1, 0xFFFF);
+
+  return ch;
+}
 
 ```
 
@@ -315,7 +324,7 @@ app = Flask(__name__)
 def hello_world():
     return 'Hello, World!\n'
 ```
-image page 1
+<p align="center"> <img src="Pictures/hello_world.png" width="60%" height="auto" /> </p>
 
 ```py
 from flask import Flask
@@ -336,7 +345,7 @@ def api_welcome_index(index):
     return welcome[index]
 ```
 
-image page 2
+<p align="center"> <img src="Pictures/api_welcome.png" width="60%" height="auto" /> </p>
 
 @app.route role : add elements to the url to run corresponding function, here to print welcome sting
 
@@ -363,9 +372,9 @@ def api_welcome():
 def api_welcome_index(index):
     return json.dumps({"index": index, "val": welcome[index]})
 ```
-image html
+<p align="center"> <img src="Pictures/content_type1.png" width="60%" height="auto" /> </p>
 
-image json
+<p align="center"> <img src="Pictures/content_type2.png" width="60%" height="auto" /> </p>
 
 ```py
 import Flask
@@ -388,9 +397,9 @@ def api_welcome_index(index):
     return jsonify({"index": index, "val": welcome[index]}), {"Content-Type": "application/json"}
 ```
 
-image json 2
+<p align="center"> <img src="Pictures/content_type_json.png" width="60%" height="auto" /> </p>
 
-error 404
+Error 404
 
 ```py
 from flask import Flask
@@ -420,7 +429,7 @@ def api_welcome_index(index):
 def page_not_found(error):
     return render_template('page_not_found.html'), 404
 ```
-image error 404
+<p align="center"> <img src="Pictures/test_404.png" width="60%" height="auto" /> </p>
 
 ## Lab session 4 : CAN Bus
 
