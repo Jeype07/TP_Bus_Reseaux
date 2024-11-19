@@ -61,6 +61,8 @@ typedef int64_t BMP280_S64_t;
 
 #define BMP_TEMP_PRESS_REG 0xF7 // 1st press register address
 #define BMP_TEMP_PRESS_DATA_LENGTH 6 // size of press + temp registers
+
+#define SIZE_OF_USART4_BUF 7
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -78,9 +80,26 @@ TIM_HandleTypeDef htim2;
 UART_HandleTypeDef huart4;
 UART_HandleTypeDef huart2;
 
-uint8_t UART4_rxBuffer[5];
 /* USER CODE BEGIN PV */
+uint8_t data;
+uint8_t UART4_rxBuffer[SIZE_OF_USART4_BUF];
+
+// Variables initialization, buffers
+//I2C
+uint8_t id_buf[1];
+uint8_t data_config[2];
+uint8_t calib_reg[1];
+uint8_t calib_data[BMP_CALIB_DATA_LENGTH];
+BMP280_CalibDataNames *calib_names;
+int32_t raw_temp;
+int32_t raw_press;
 BMP280_CalibDataNames reg;
+int32_t t_fine;
+
+// Variables CAN
+CAN_TxHeaderTypeDef   TxHeader;
+uint8_t               TxData[3];
+uint32_t              TxMailbox;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -92,36 +111,89 @@ static void MX_UART4_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_I2C1_Init(void);
 /* USER CODE BEGIN PFP */
+
 void User_UartCompleteCallback(UART_HandleTypeDef *huart);
+
 void read_calibration_data();
+
 void read_raw_t_p(int32_t *raw_press, int32_t *raw_temp);
+
+void querry_ID_BMP();
+
+void querry_Config_BMP();
+
+void querry_Calib_BMP();
+
+void conf_CAN();
+
+void get_BMP_meas();
+
+void rotate_motor_90d();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void querry_ID_BMP(){
+	//question réponse capteur avec I2C pour ID capteur
+	id_buf[0]= BMP_ID_REG;
+	HAL_I2C_Master_Transmit(&hi2c1,BMP_ADDR,id_buf,1,HAL_MAX_DELAY);
+	HAL_I2C_Master_Receive(&hi2c1,BMP_ADDR,id_buf,1,HAL_MAX_DELAY);
+	printf("BMP280 ID : %x\r\n",id_buf[0]);
+}
+
+void querry_Config_BMP(){
+	//Configuration et vérification du capteur
+	data_config[0]= BMP_ADDR_MODE;
+	data_config[1]= BMP_MODE;
+	HAL_I2C_Master_Transmit(&hi2c1,BMP_ADDR,data_config,2,HAL_MAX_DELAY);
+	HAL_I2C_Master_Receive(&hi2c1,BMP_ADDR,data_config,2,HAL_MAX_DELAY);
+	printf("Register : %x\r\n",data_config[0]);
+	printf("Mode : %x\r\n",data_config[1]);
+}
+
+void querry_Calib_BMP(){
+	// Retrieving of calibration Data
+	calib_reg[0] = BMP_CALIB_REG;
+	HAL_I2C_Master_Transmit(&hi2c1, BMP_ADDR, calib_reg, 1, HAL_MAX_DELAY);
+	HAL_I2C_Master_Receive(&hi2c1, BMP_ADDR, calib_data, BMP_CALIB_DATA_LENGTH, HAL_MAX_DELAY);
+	calib_names->dig_T1 = (uint16_t)((calib_data[1] << 8) | calib_data[0]);
+	calib_names->dig_T2 = (int16_t)((calib_data[3] << 8) | calib_data[2]);
+	calib_names->dig_T3 = (int16_t)((calib_data[5] << 8) | calib_data[4]);
+	calib_names->dig_P1 = (uint16_t)((calib_data[7] << 8) | calib_data[6]);
+	calib_names->dig_P2 = (int16_t)((calib_data[9] << 8) | calib_data[8]);
+	calib_names->dig_P3 = (int16_t)((calib_data[11] << 8) | calib_data[10]);
+	calib_names->dig_P4 = (int16_t)((calib_data[13] << 8) | calib_data[12]);
+	calib_names->dig_P5 = (int16_t)((calib_data[15] << 8) | calib_data[14]);
+	calib_names->dig_P6 = (int16_t)((calib_data[17] << 8) | calib_data[16]);
+	calib_names->dig_P7 = (int16_t)((calib_data[19] << 8) | calib_data[18]);
+	calib_names->dig_P8 = (int16_t)((calib_data[21] << 8) | calib_data[20]);
+	calib_names->dig_P9 = (int16_t)((calib_data[23] << 8) | calib_data[22]);
+}
+
 void read_raw_t_p(int32_t *raw_press, int32_t *raw_temp){
 	uint8_t raw_data[BMP_TEMP_PRESS_DATA_LENGTH];
 	uint8_t reg = BMP_TEMP_PRESS_REG;
+
 	if (HAL_I2C_Master_Transmit(&hi2c1, BMP_ADDR, &reg, 1, HAL_MAX_DELAY)==HAL_OK){
 		HAL_I2C_Master_Receive(&hi2c1, BMP_ADDR, raw_data, BMP_TEMP_PRESS_DATA_LENGTH, HAL_MAX_DELAY);
 		*raw_press = (int32_t)(((raw_data[0] << 16) | (raw_data[1] << 8) | raw_data[2]) >> 4);
 		*raw_temp = (int32_t)(((raw_data[3] << 16) | (raw_data[4] << 8) | raw_data[5]) >> 4);
-		printf("Raw Temp = %ld,\r\nRaw Press = %ld\r\n", raw_temp, raw_press);
+		printf("Raw Temp = %d,\r\nRaw Press = %d\r\n", raw_temp, raw_press);
 	}
 	else{
 		printf("Erreur de communication sur le bus bus I2C\r\n");
-		return 0;
 	}
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-	HAL_UART_Receive_IT (&huart4, UART4_rxBuffer, 5);
+	HAL_UART_Receive_IT (&huart4, (uint8_t*)UART4_rxBuffer, SIZE_OF_USART4_BUF);
 	printf("%s\r\n",UART4_rxBuffer);
 }
+
 // Returns temperature in DegC, resolution is 0.01 DegC. Output value of “5123�? equals 51.23 DegC.
 // t_fine carries fine temperature as global value
-int32_t t_fine;
+
 BMP280_S32_t bmp280_compensate_T_int32(BMP280_S32_t adc_T,BMP280_CalibDataNames *calib_names)
 {
 	BMP280_S32_t var1, var2, T;
@@ -154,6 +226,48 @@ BMP280_U32_t bmp280_compensate_P_int64(BMP280_S32_t adc_P, BMP280_CalibDataNames
 	return (BMP280_U32_t)p;
 }
 
+void conf_CAN(){
+	// Motor pilot : +90 degree
+	TxHeader.IDE = CAN_ID_STD;
+	TxHeader.StdId = 0x61;
+	TxHeader.RTR = CAN_RTR_DATA;
+	TxHeader.DLC = 2;
+	TxHeader.TransmitGlobalTime = DISABLE;
+
+	TxData[0] = 90; 	//angle
+	TxData[1] = 0x00;	//positive
+	//TxData[2] = 0xA0;	//speed
+
+
+	HAL_CAN_Start(&hcan1);
+}
+
+void get_BMP_meas(){
+	//Retrieving the raw temp and press values
+	read_raw_t_p(&raw_temp, &raw_press);
+
+	// Compensated temperature and pressure
+	int32_t temp = bmp280_compensate_T_int32(raw_temp, calib_names);
+	int32_t press = bmp280_compensate_P_int64(raw_press, calib_names);
+	printf("Compensated Temp = %ld C\r\nCompensated Press = %ld Pa\r\n", temp/100, press/256);
+}
+
+void rotate_motor_90d(){
+	if(HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox)!= HAL_OK){
+		printf("Erreur de communication sur le bus CAN\r\n");
+	}
+	else{
+		printf("Commnication établie\r\n");
+	}
+
+	if(TxData[1]==1){
+		TxData[1] = 0;
+	}
+	else{
+		TxData[1]=1;
+	}
+	HAL_Delay(1000);
+}
 /* USER CODE END 0 */
 
 /**
@@ -200,101 +314,13 @@ int main(void)
 	/* USER CODE BEGIN WHILE */
 	printf("==== TP BUS & NETWORK ====\r\n");
 
-	// Variables initialization, buffers
-	//I2C
-	uint8_t id_buf[1];
-	uint8_t data_config[2];
-	uint8_t calib_reg[1];
-	uint8_t calib_data[BMP_CALIB_DATA_LENGTH];
-	BMP280_CalibDataNames *calib_names;
-	int32_t raw_temp;
-	int32_t raw_press;
-
-	//question réponse capteur avec I2C pour ID capteur
-	id_buf[0]= BMP_ID_REG;
-	HAL_I2C_Master_Transmit(&hi2c1,BMP_ADDR,id_buf,1,HAL_MAX_DELAY);
-	HAL_I2C_Master_Receive(&hi2c1,BMP_ADDR,id_buf,1,HAL_MAX_DELAY);
-	printf("BMP280 ID : %x\r\n",id_buf[0]);
-
-	//Configuration et vérification du capteur
-	data_config[0]= BMP_ADDR_MODE;
-	data_config[1]= BMP_MODE;
-	HAL_I2C_Master_Transmit(&hi2c1,BMP_ADDR,data_config,2,HAL_MAX_DELAY);
-	HAL_I2C_Master_Receive(&hi2c1,BMP_ADDR,data_config,2,HAL_MAX_DELAY);
-	printf("Register : %x\r\n",data_config[0]);
-	printf("Mode : %x\r\n",data_config[1]);
-
-	// Retrieving of calibration Data
-	calib_reg[0] = BMP_CALIB_REG;
-	HAL_I2C_Master_Transmit(&hi2c1, BMP_ADDR, calib_reg, 1, HAL_MAX_DELAY);
-	HAL_I2C_Master_Receive(&hi2c1, BMP_ADDR, calib_data, BMP_CALIB_DATA_LENGTH, HAL_MAX_DELAY);
-	calib_names->dig_T1 = (uint16_t)((calib_data[1] << 8) | calib_data[0]);
-	calib_names->dig_T2 = (int16_t)((calib_data[3] << 8) | calib_data[2]);
-	calib_names->dig_T3 = (int16_t)((calib_data[5] << 8) | calib_data[4]);
-	calib_names->dig_P1 = (uint16_t)((calib_data[7] << 8) | calib_data[6]);
-	calib_names->dig_P2 = (int16_t)((calib_data[9] << 8) | calib_data[8]);
-	calib_names->dig_P3 = (int16_t)((calib_data[11] << 8) | calib_data[10]);
-	calib_names->dig_P4 = (int16_t)((calib_data[13] << 8) | calib_data[12]);
-	calib_names->dig_P5 = (int16_t)((calib_data[15] << 8) | calib_data[14]);
-	calib_names->dig_P6 = (int16_t)((calib_data[17] << 8) | calib_data[16]);
-	calib_names->dig_P7 = (int16_t)((calib_data[19] << 8) | calib_data[18]);
-	calib_names->dig_P8 = (int16_t)((calib_data[21] << 8) | calib_data[20]);
-	calib_names->dig_P9 = (int16_t)((calib_data[23] << 8) | calib_data[22]);
-	/*
-	// Variables CAN
-	CAN_TxHeaderTypeDef   TxHeader;
-	uint8_t               TxData[3];
-	uint32_t              TxMailbox;
-
-	// Motor pilot : +90 degree
-	TxHeader.IDE = CAN_ID_STD;
-	TxHeader.StdId = 0x61;
-	TxHeader.RTR = CAN_RTR_DATA;
-	TxHeader.DLC = 2;
-	TxHeader.TransmitGlobalTime = DISABLE;
-
-	TxData[0] = 90; 	//angle
-	TxData[1] = 0x00;	//positive
-	//TxData[2] = 0xA0;	//speed
-
-
-	HAL_CAN_Start(&hcan1);*/
-
-	HAL_UART_Receive_IT (&huart4, (uint8_t)UART4_rxBuffer, 5);
+	HAL_UART_Receive_IT (&huart4, (uint8_t *) UART4_rxBuffer, SIZE_OF_USART4_BUF); //usart rasp pi
 
 
 	while (1)
 	{
-		/*
-		//code bloquant pour écho
-		HAL_UART_Receive( &huart2, &data, 1, HAL_MAX_DELAY );
-		printf("\r\n");
-		printf("%s\r\n",&data);
-		HAL_UART_Transmit( &huart2, &data, 1, HAL_MAX_DELAY );
-		 */
 
-		//Retrieving the raw temp and press values
-		//read_raw_t_p(&raw_temp, &raw_press);
 
-		// Compensated temperature and pressure
-		//int32_t temp = bmp280_compensate_T_int32(raw_temp, calib_names);
-		//int32_t press = bmp280_compensate_P_int64(raw_press, calib_names);
-		//printf("Compensated Temp = %d C\r\nCompensated Press = %d Pa\r\n", temp/100, press/256);
-		/*
-		if(HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox)!= HAL_OK){
-			printf("Erreur de communication sur le bus CAN\r\n");
-			return 0;
-		}
-		else{
-			printf("Commnication établie\r\n");
-		}
-		if(TxData[1]==1){
-				TxData[1] = 0;
-		}
-		else{
-			TxData[1]=1;
-		}*/
-		//HAL_Delay(1000);
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */
