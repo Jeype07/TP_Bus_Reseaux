@@ -118,11 +118,11 @@ void read_calibration_data();
 
 void read_raw_t_p(int32_t *raw_press, int32_t *raw_temp);
 
-void querry_ID_BMP();
+void query_ID_BMP();
 
-void querry_Config_BMP();
+void query_Config_BMP();
 
-void querry_Calib_BMP();
+void query_Calib_BMP();
 
 void conf_CAN();
 
@@ -133,7 +133,7 @@ void rotate_motor_90d();
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void querry_ID_BMP(){
+void query_ID_BMP(){
 	//question réponse capteur avec I2C pour ID capteur
 	id_buf[0]= BMP_ID_REG;
 	HAL_I2C_Master_Transmit(&hi2c1,BMP_ADDR,id_buf,1,HAL_MAX_DELAY);
@@ -141,7 +141,7 @@ void querry_ID_BMP(){
 	printf("BMP280 ID : %x\r\n",id_buf[0]);
 }
 
-void querry_Config_BMP(){
+void query_Config_BMP(){
 	//Configuration et vérification du capteur
 	data_config[0]= BMP_ADDR_MODE;
 	data_config[1]= BMP_MODE;
@@ -151,7 +151,7 @@ void querry_Config_BMP(){
 	printf("Mode : %x\r\n",data_config[1]);
 }
 
-void querry_Calib_BMP(){
+void query_Calib_BMP(){
 	// Retrieving of calibration Data
 	calib_reg[0] = BMP_CALIB_REG;
 	HAL_I2C_Master_Transmit(&hi2c1, BMP_ADDR, calib_reg, 1, HAL_MAX_DELAY);
@@ -315,9 +315,9 @@ int main(void)
 	printf("==== TP BUS & NETWORK ====\r\n");
 
 	// get id, calib, and config data
-	querry_ID_BMP();
-	querry_Config_BMP();
-	querry_Calib_BMP();
+	query_ID_BMP();
+	query_Config_BMP();
+	query_Calib_BMP();
 
 	HAL_UART_Receive_IT (&huart4, (uint8_t *) UART4_rxBuffer, SIZE_OF_USART4_BUF); //usart rasp pi
 

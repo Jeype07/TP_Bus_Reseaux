@@ -1,6 +1,6 @@
-../Core/Src/main.c:136:6:querry_ID_BMP	1
-../Core/Src/main.c:144:6:querry_Config_BMP	1
-../Core/Src/main.c:154:6:querry_Calib_BMP	1
+../Core/Src/main.c:136:6:query_ID_BMP	1
+../Core/Src/main.c:144:6:query_Config_BMP	1
+../Core/Src/main.c:154:6:query_Calib_BMP	1
 ../Core/Src/main.c:173:6:read_raw_t_p	2
 ../Core/Src/main.c:188:6:HAL_UART_RxCpltCallback	1
 ../Core/Src/main.c:197:14:bmp280_compensate_T_int32	1

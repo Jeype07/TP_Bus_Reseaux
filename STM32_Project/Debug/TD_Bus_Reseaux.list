@@ -39,13 +39,13 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  17 .debug_line   00016744  00000000  00000000  000441c9  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    000d8a26  00000000  00000000  0005a90d  2**0
+ 18 .debug_str    000d8a1c  00000000  00000000  0005a90d  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000043  00000000  00000000  00133333  2**0
+ 19 .comment      00000043  00000000  00000000  00133329  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  00005744  00000000  00000000  00133378  2**2
+ 20 .debug_frame  00005744  00000000  00000000  0013336c  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 21 .debug_line_str 0000007c  00000000  00000000  00138abc  2**0
+ 21 .debug_line_str 00000075  00000000  00000000  00138ab0  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -461,42 +461,42 @@ Disassembly of section .text:
  800063c:	4770      	bx	lr
  800063e:	bf00      	nop
 
-08000640 <querry_ID_BMP>:
+08000640 <query_ID_BMP>:
 void rotate_motor_90d();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void querry_ID_BMP(){
+void query_ID_BMP(){
  8000640:	b580      	push	{r7, lr}
  8000642:	b082      	sub	sp, #8
  8000644:	af02      	add	r7, sp, #8
 	//question réponse capteur avec I2C pour ID capteur
 	id_buf[0]= BMP_ID_REG;
- 8000646:	4b0f      	ldr	r3, [pc, #60]	@ (8000684 <querry_ID_BMP+0x44>)
+ 8000646:	4b0f      	ldr	r3, [pc, #60]	@ (8000684 <query_ID_BMP+0x44>)
  8000648:	22d0      	movs	r2, #208	@ 0xd0
  800064a:	701a      	strb	r2, [r3, #0]
 	HAL_I2C_Master_Transmit(&hi2c1,BMP_ADDR,id_buf,1,HAL_MAX_DELAY);
  800064c:	f04f 33ff 	mov.w	r3, #4294967295
  8000650:	9300      	str	r3, [sp, #0]
  8000652:	2301      	movs	r3, #1
- 8000654:	4a0b      	ldr	r2, [pc, #44]	@ (8000684 <querry_ID_BMP+0x44>)
+ 8000654:	4a0b      	ldr	r2, [pc, #44]	@ (8000684 <query_ID_BMP+0x44>)
  8000656:	21ee      	movs	r1, #238	@ 0xee
- 8000658:	480b      	ldr	r0, [pc, #44]	@ (8000688 <querry_ID_BMP+0x48>)
+ 8000658:	480b      	ldr	r0, [pc, #44]	@ (8000688 <query_ID_BMP+0x48>)
  800065a:	f001 ff69 	bl	8002530 <HAL_I2C_Master_Transmit>
 	HAL_I2C_Master_Receive(&hi2c1,BMP_ADDR,id_buf,1,HAL_MAX_DELAY);
  800065e:	f04f 33ff 	mov.w	r3, #4294967295
  8000662:	9300      	str	r3, [sp, #0]
  8000664:	2301      	movs	r3, #1
- 8000666:	4a07      	ldr	r2, [pc, #28]	@ (8000684 <querry_ID_BMP+0x44>)
+ 8000666:	4a07      	ldr	r2, [pc, #28]	@ (8000684 <query_ID_BMP+0x44>)
  8000668:	21ee      	movs	r1, #238	@ 0xee
- 800066a:	4807      	ldr	r0, [pc, #28]	@ (8000688 <querry_ID_BMP+0x48>)
+ 800066a:	4807      	ldr	r0, [pc, #28]	@ (8000688 <query_ID_BMP+0x48>)
  800066c:	f002 f85e 	bl	800272c <HAL_I2C_Master_Receive>
 	printf("BMP280 ID : %x\r\n",id_buf[0]);
- 8000670:	4b04      	ldr	r3, [pc, #16]	@ (8000684 <querry_ID_BMP+0x44>)
+ 8000670:	4b04      	ldr	r3, [pc, #16]	@ (8000684 <query_ID_BMP+0x44>)
  8000672:	781b      	ldrb	r3, [r3, #0]
  8000674:	4619      	mov	r1, r3
- 8000676:	4805      	ldr	r0, [pc, #20]	@ (800068c <querry_ID_BMP+0x4c>)
+ 8000676:	4805      	ldr	r0, [pc, #20]	@ (800068c <query_ID_BMP+0x4c>)
  8000678:	f005 fbba 	bl	8005df0 <iprintf>
 }
  800067c:	bf00      	nop
@@ -507,48 +507,48 @@ void querry_ID_BMP(){
  8000688:	200000ac 	.word	0x200000ac
  800068c:	08006ba0 	.word	0x08006ba0
 
-08000690 <querry_Config_BMP>:
+08000690 <query_Config_BMP>:
 
-void querry_Config_BMP(){
+void query_Config_BMP(){
  8000690:	b580      	push	{r7, lr}
  8000692:	b082      	sub	sp, #8
  8000694:	af02      	add	r7, sp, #8
 	//Configuration et vérification du capteur
 	data_config[0]= BMP_ADDR_MODE;
- 8000696:	4b13      	ldr	r3, [pc, #76]	@ (80006e4 <querry_Config_BMP+0x54>)
+ 8000696:	4b13      	ldr	r3, [pc, #76]	@ (80006e4 <query_Config_BMP+0x54>)
  8000698:	22f4      	movs	r2, #244	@ 0xf4
  800069a:	701a      	strb	r2, [r3, #0]
 	data_config[1]= BMP_MODE;
- 800069c:	4b11      	ldr	r3, [pc, #68]	@ (80006e4 <querry_Config_BMP+0x54>)
+ 800069c:	4b11      	ldr	r3, [pc, #68]	@ (80006e4 <query_Config_BMP+0x54>)
  800069e:	2257      	movs	r2, #87	@ 0x57
  80006a0:	705a      	strb	r2, [r3, #1]
 	HAL_I2C_Master_Transmit(&hi2c1,BMP_ADDR,data_config,2,HAL_MAX_DELAY);
  80006a2:	f04f 33ff 	mov.w	r3, #4294967295
  80006a6:	9300      	str	r3, [sp, #0]
  80006a8:	2302      	movs	r3, #2
- 80006aa:	4a0e      	ldr	r2, [pc, #56]	@ (80006e4 <querry_Config_BMP+0x54>)
+ 80006aa:	4a0e      	ldr	r2, [pc, #56]	@ (80006e4 <query_Config_BMP+0x54>)
  80006ac:	21ee      	movs	r1, #238	@ 0xee
- 80006ae:	480e      	ldr	r0, [pc, #56]	@ (80006e8 <querry_Config_BMP+0x58>)
+ 80006ae:	480e      	ldr	r0, [pc, #56]	@ (80006e8 <query_Config_BMP+0x58>)
  80006b0:	f001 ff3e 	bl	8002530 <HAL_I2C_Master_Transmit>
 	HAL_I2C_Master_Receive(&hi2c1,BMP_ADDR,data_config,2,HAL_MAX_DELAY);
  80006b4:	f04f 33ff 	mov.w	r3, #4294967295
  80006b8:	9300      	str	r3, [sp, #0]
  80006ba:	2302      	movs	r3, #2
- 80006bc:	4a09      	ldr	r2, [pc, #36]	@ (80006e4 <querry_Config_BMP+0x54>)
+ 80006bc:	4a09      	ldr	r2, [pc, #36]	@ (80006e4 <query_Config_BMP+0x54>)
  80006be:	21ee      	movs	r1, #238	@ 0xee
- 80006c0:	4809      	ldr	r0, [pc, #36]	@ (80006e8 <querry_Config_BMP+0x58>)
+ 80006c0:	4809      	ldr	r0, [pc, #36]	@ (80006e8 <query_Config_BMP+0x58>)
  80006c2:	f002 f833 	bl	800272c <HAL_I2C_Master_Receive>
 	printf("Register : %x\r\n",data_config[0]);
- 80006c6:	4b07      	ldr	r3, [pc, #28]	@ (80006e4 <querry_Config_BMP+0x54>)
+ 80006c6:	4b07      	ldr	r3, [pc, #28]	@ (80006e4 <query_Config_BMP+0x54>)
  80006c8:	781b      	ldrb	r3, [r3, #0]
  80006ca:	4619      	mov	r1, r3
- 80006cc:	4807      	ldr	r0, [pc, #28]	@ (80006ec <querry_Config_BMP+0x5c>)
+ 80006cc:	4807      	ldr	r0, [pc, #28]	@ (80006ec <query_Config_BMP+0x5c>)
  80006ce:	f005 fb8f 	bl	8005df0 <iprintf>
 	printf("Mode : %x\r\n",data_config[1]);
- 80006d2:	4b04      	ldr	r3, [pc, #16]	@ (80006e4 <querry_Config_BMP+0x54>)
+ 80006d2:	4b04      	ldr	r3, [pc, #16]	@ (80006e4 <query_Config_BMP+0x54>)
  80006d4:	785b      	ldrb	r3, [r3, #1]
  80006d6:	4619      	mov	r1, r3
- 80006d8:	4805      	ldr	r0, [pc, #20]	@ (80006f0 <querry_Config_BMP+0x60>)
+ 80006d8:	4805      	ldr	r0, [pc, #20]	@ (80006f0 <query_Config_BMP+0x60>)
  80006da:	f005 fb89 	bl	8005df0 <iprintf>
 }
  80006de:	bf00      	nop
@@ -559,187 +559,187 @@ void querry_Config_BMP(){
  80006ec:	08006bb4 	.word	0x08006bb4
  80006f0:	08006bc4 	.word	0x08006bc4
 
-080006f4 <querry_Calib_BMP>:
+080006f4 <query_Calib_BMP>:
 
-void querry_Calib_BMP(){
+void query_Calib_BMP(){
  80006f4:	b580      	push	{r7, lr}
  80006f6:	b082      	sub	sp, #8
  80006f8:	af02      	add	r7, sp, #8
 	// Retrieving of calibration Data
 	calib_reg[0] = BMP_CALIB_REG;
- 80006fa:	4b55      	ldr	r3, [pc, #340]	@ (8000850 <querry_Calib_BMP+0x15c>)
+ 80006fa:	4b55      	ldr	r3, [pc, #340]	@ (8000850 <query_Calib_BMP+0x15c>)
  80006fc:	2288      	movs	r2, #136	@ 0x88
  80006fe:	701a      	strb	r2, [r3, #0]
 	HAL_I2C_Master_Transmit(&hi2c1, BMP_ADDR, calib_reg, 1, HAL_MAX_DELAY);
  8000700:	f04f 33ff 	mov.w	r3, #4294967295
  8000704:	9300      	str	r3, [sp, #0]
  8000706:	2301      	movs	r3, #1
- 8000708:	4a51      	ldr	r2, [pc, #324]	@ (8000850 <querry_Calib_BMP+0x15c>)
+ 8000708:	4a51      	ldr	r2, [pc, #324]	@ (8000850 <query_Calib_BMP+0x15c>)
  800070a:	21ee      	movs	r1, #238	@ 0xee
- 800070c:	4851      	ldr	r0, [pc, #324]	@ (8000854 <querry_Calib_BMP+0x160>)
+ 800070c:	4851      	ldr	r0, [pc, #324]	@ (8000854 <query_Calib_BMP+0x160>)
  800070e:	f001 ff0f 	bl	8002530 <HAL_I2C_Master_Transmit>
 	HAL_I2C_Master_Receive(&hi2c1, BMP_ADDR, calib_data, BMP_CALIB_DATA_LENGTH, HAL_MAX_DELAY);
  8000712:	f04f 33ff 	mov.w	r3, #4294967295
  8000716:	9300      	str	r3, [sp, #0]
  8000718:	2318      	movs	r3, #24
- 800071a:	4a4f      	ldr	r2, [pc, #316]	@ (8000858 <querry_Calib_BMP+0x164>)
+ 800071a:	4a4f      	ldr	r2, [pc, #316]	@ (8000858 <query_Calib_BMP+0x164>)
  800071c:	21ee      	movs	r1, #238	@ 0xee
- 800071e:	484d      	ldr	r0, [pc, #308]	@ (8000854 <querry_Calib_BMP+0x160>)
+ 800071e:	484d      	ldr	r0, [pc, #308]	@ (8000854 <query_Calib_BMP+0x160>)
  8000720:	f002 f804 	bl	800272c <HAL_I2C_Master_Receive>
 	calib_names->dig_T1 = (uint16_t)((calib_data[1] << 8) | calib_data[0]);
- 8000724:	4b4c      	ldr	r3, [pc, #304]	@ (8000858 <querry_Calib_BMP+0x164>)
+ 8000724:	4b4c      	ldr	r3, [pc, #304]	@ (8000858 <query_Calib_BMP+0x164>)
  8000726:	785b      	ldrb	r3, [r3, #1]
  8000728:	021b      	lsls	r3, r3, #8
  800072a:	b21a      	sxth	r2, r3
- 800072c:	4b4a      	ldr	r3, [pc, #296]	@ (8000858 <querry_Calib_BMP+0x164>)
+ 800072c:	4b4a      	ldr	r3, [pc, #296]	@ (8000858 <query_Calib_BMP+0x164>)
  800072e:	781b      	ldrb	r3, [r3, #0]
  8000730:	b21b      	sxth	r3, r3
  8000732:	4313      	orrs	r3, r2
  8000734:	b21a      	sxth	r2, r3
- 8000736:	4b49      	ldr	r3, [pc, #292]	@ (800085c <querry_Calib_BMP+0x168>)
+ 8000736:	4b49      	ldr	r3, [pc, #292]	@ (800085c <query_Calib_BMP+0x168>)
  8000738:	681b      	ldr	r3, [r3, #0]
  800073a:	b292      	uxth	r2, r2
  800073c:	801a      	strh	r2, [r3, #0]
 	calib_names->dig_T2 = (int16_t)((calib_data[3] << 8) | calib_data[2]);
- 800073e:	4b46      	ldr	r3, [pc, #280]	@ (8000858 <querry_Calib_BMP+0x164>)
+ 800073e:	4b46      	ldr	r3, [pc, #280]	@ (8000858 <query_Calib_BMP+0x164>)
  8000740:	78db      	ldrb	r3, [r3, #3]
  8000742:	021b      	lsls	r3, r3, #8
  8000744:	b219      	sxth	r1, r3
- 8000746:	4b44      	ldr	r3, [pc, #272]	@ (8000858 <querry_Calib_BMP+0x164>)
+ 8000746:	4b44      	ldr	r3, [pc, #272]	@ (8000858 <query_Calib_BMP+0x164>)
  8000748:	789b      	ldrb	r3, [r3, #2]
  800074a:	b21a      	sxth	r2, r3
- 800074c:	4b43      	ldr	r3, [pc, #268]	@ (800085c <querry_Calib_BMP+0x168>)
+ 800074c:	4b43      	ldr	r3, [pc, #268]	@ (800085c <query_Calib_BMP+0x168>)
  800074e:	681b      	ldr	r3, [r3, #0]
  8000750:	430a      	orrs	r2, r1
  8000752:	b212      	sxth	r2, r2
  8000754:	805a      	strh	r2, [r3, #2]
 	calib_names->dig_T3 = (int16_t)((calib_data[5] << 8) | calib_data[4]);
- 8000756:	4b40      	ldr	r3, [pc, #256]	@ (8000858 <querry_Calib_BMP+0x164>)
+ 8000756:	4b40      	ldr	r3, [pc, #256]	@ (8000858 <query_Calib_BMP+0x164>)
  8000758:	795b      	ldrb	r3, [r3, #5]
  800075a:	021b      	lsls	r3, r3, #8
  800075c:	b219      	sxth	r1, r3
- 800075e:	4b3e      	ldr	r3, [pc, #248]	@ (8000858 <querry_Calib_BMP+0x164>)
+ 800075e:	4b3e      	ldr	r3, [pc, #248]	@ (8000858 <query_Calib_BMP+0x164>)
  8000760:	791b      	ldrb	r3, [r3, #4]
  8000762:	b21a      	sxth	r2, r3
- 8000764:	4b3d      	ldr	r3, [pc, #244]	@ (800085c <querry_Calib_BMP+0x168>)
+ 8000764:	4b3d      	ldr	r3, [pc, #244]	@ (800085c <query_Calib_BMP+0x168>)
  8000766:	681b      	ldr	r3, [r3, #0]
  8000768:	430a      	orrs	r2, r1
  800076a:	b212      	sxth	r2, r2
  800076c:	809a      	strh	r2, [r3, #4]
 	calib_names->dig_P1 = (uint16_t)((calib_data[7] << 8) | calib_data[6]);
- 800076e:	4b3a      	ldr	r3, [pc, #232]	@ (8000858 <querry_Calib_BMP+0x164>)
+ 800076e:	4b3a      	ldr	r3, [pc, #232]	@ (8000858 <query_Calib_BMP+0x164>)
  8000770:	79db      	ldrb	r3, [r3, #7]
  8000772:	021b      	lsls	r3, r3, #8
  8000774:	b21a      	sxth	r2, r3
- 8000776:	4b38      	ldr	r3, [pc, #224]	@ (8000858 <querry_Calib_BMP+0x164>)
+ 8000776:	4b38      	ldr	r3, [pc, #224]	@ (8000858 <query_Calib_BMP+0x164>)
  8000778:	799b      	ldrb	r3, [r3, #6]
  800077a:	b21b      	sxth	r3, r3
  800077c:	4313      	orrs	r3, r2
  800077e:	b21a      	sxth	r2, r3
- 8000780:	4b36      	ldr	r3, [pc, #216]	@ (800085c <querry_Calib_BMP+0x168>)
+ 8000780:	4b36      	ldr	r3, [pc, #216]	@ (800085c <query_Calib_BMP+0x168>)
  8000782:	681b      	ldr	r3, [r3, #0]
  8000784:	b292      	uxth	r2, r2
  8000786:	80da      	strh	r2, [r3, #6]
 	calib_names->dig_P2 = (int16_t)((calib_data[9] << 8) | calib_data[8]);
- 8000788:	4b33      	ldr	r3, [pc, #204]	@ (8000858 <querry_Calib_BMP+0x164>)
+ 8000788:	4b33      	ldr	r3, [pc, #204]	@ (8000858 <query_Calib_BMP+0x164>)
  800078a:	7a5b      	ldrb	r3, [r3, #9]
  800078c:	021b      	lsls	r3, r3, #8
  800078e:	b219      	sxth	r1, r3
- 8000790:	4b31      	ldr	r3, [pc, #196]	@ (8000858 <querry_Calib_BMP+0x164>)
+ 8000790:	4b31      	ldr	r3, [pc, #196]	@ (8000858 <query_Calib_BMP+0x164>)
  8000792:	7a1b      	ldrb	r3, [r3, #8]
  8000794:	b21a      	sxth	r2, r3
- 8000796:	4b31      	ldr	r3, [pc, #196]	@ (800085c <querry_Calib_BMP+0x168>)
+ 8000796:	4b31      	ldr	r3, [pc, #196]	@ (800085c <query_Calib_BMP+0x168>)
  8000798:	681b      	ldr	r3, [r3, #0]
  800079a:	430a      	orrs	r2, r1
  800079c:	b212      	sxth	r2, r2
  800079e:	811a      	strh	r2, [r3, #8]
 	calib_names->dig_P3 = (int16_t)((calib_data[11] << 8) | calib_data[10]);
- 80007a0:	4b2d      	ldr	r3, [pc, #180]	@ (8000858 <querry_Calib_BMP+0x164>)
+ 80007a0:	4b2d      	ldr	r3, [pc, #180]	@ (8000858 <query_Calib_BMP+0x164>)
  80007a2:	7adb      	ldrb	r3, [r3, #11]
  80007a4:	021b      	lsls	r3, r3, #8
  80007a6:	b219      	sxth	r1, r3
- 80007a8:	4b2b      	ldr	r3, [pc, #172]	@ (8000858 <querry_Calib_BMP+0x164>)
+ 80007a8:	4b2b      	ldr	r3, [pc, #172]	@ (8000858 <query_Calib_BMP+0x164>)
  80007aa:	7a9b      	ldrb	r3, [r3, #10]
  80007ac:	b21a      	sxth	r2, r3
- 80007ae:	4b2b      	ldr	r3, [pc, #172]	@ (800085c <querry_Calib_BMP+0x168>)
+ 80007ae:	4b2b      	ldr	r3, [pc, #172]	@ (800085c <query_Calib_BMP+0x168>)
  80007b0:	681b      	ldr	r3, [r3, #0]
  80007b2:	430a      	orrs	r2, r1
  80007b4:	b212      	sxth	r2, r2
  80007b6:	815a      	strh	r2, [r3, #10]
 	calib_names->dig_P4 = (int16_t)((calib_data[13] << 8) | calib_data[12]);
- 80007b8:	4b27      	ldr	r3, [pc, #156]	@ (8000858 <querry_Calib_BMP+0x164>)
+ 80007b8:	4b27      	ldr	r3, [pc, #156]	@ (8000858 <query_Calib_BMP+0x164>)
  80007ba:	7b5b      	ldrb	r3, [r3, #13]
  80007bc:	021b      	lsls	r3, r3, #8
  80007be:	b219      	sxth	r1, r3
- 80007c0:	4b25      	ldr	r3, [pc, #148]	@ (8000858 <querry_Calib_BMP+0x164>)
+ 80007c0:	4b25      	ldr	r3, [pc, #148]	@ (8000858 <query_Calib_BMP+0x164>)
  80007c2:	7b1b      	ldrb	r3, [r3, #12]
  80007c4:	b21a      	sxth	r2, r3
- 80007c6:	4b25      	ldr	r3, [pc, #148]	@ (800085c <querry_Calib_BMP+0x168>)
+ 80007c6:	4b25      	ldr	r3, [pc, #148]	@ (800085c <query_Calib_BMP+0x168>)
  80007c8:	681b      	ldr	r3, [r3, #0]
  80007ca:	430a      	orrs	r2, r1
  80007cc:	b212      	sxth	r2, r2
  80007ce:	819a      	strh	r2, [r3, #12]
 	calib_names->dig_P5 = (int16_t)((calib_data[15] << 8) | calib_data[14]);
- 80007d0:	4b21      	ldr	r3, [pc, #132]	@ (8000858 <querry_Calib_BMP+0x164>)
+ 80007d0:	4b21      	ldr	r3, [pc, #132]	@ (8000858 <query_Calib_BMP+0x164>)
  80007d2:	7bdb      	ldrb	r3, [r3, #15]
  80007d4:	021b      	lsls	r3, r3, #8
  80007d6:	b219      	sxth	r1, r3
- 80007d8:	4b1f      	ldr	r3, [pc, #124]	@ (8000858 <querry_Calib_BMP+0x164>)
+ 80007d8:	4b1f      	ldr	r3, [pc, #124]	@ (8000858 <query_Calib_BMP+0x164>)
  80007da:	7b9b      	ldrb	r3, [r3, #14]
  80007dc:	b21a      	sxth	r2, r3
- 80007de:	4b1f      	ldr	r3, [pc, #124]	@ (800085c <querry_Calib_BMP+0x168>)
+ 80007de:	4b1f      	ldr	r3, [pc, #124]	@ (800085c <query_Calib_BMP+0x168>)
  80007e0:	681b      	ldr	r3, [r3, #0]
  80007e2:	430a      	orrs	r2, r1
  80007e4:	b212      	sxth	r2, r2
  80007e6:	81da      	strh	r2, [r3, #14]
 	calib_names->dig_P6 = (int16_t)((calib_data[17] << 8) | calib_data[16]);
- 80007e8:	4b1b      	ldr	r3, [pc, #108]	@ (8000858 <querry_Calib_BMP+0x164>)
+ 80007e8:	4b1b      	ldr	r3, [pc, #108]	@ (8000858 <query_Calib_BMP+0x164>)
  80007ea:	7c5b      	ldrb	r3, [r3, #17]
  80007ec:	021b      	lsls	r3, r3, #8
  80007ee:	b219      	sxth	r1, r3
- 80007f0:	4b19      	ldr	r3, [pc, #100]	@ (8000858 <querry_Calib_BMP+0x164>)
+ 80007f0:	4b19      	ldr	r3, [pc, #100]	@ (8000858 <query_Calib_BMP+0x164>)
  80007f2:	7c1b      	ldrb	r3, [r3, #16]
  80007f4:	b21a      	sxth	r2, r3
- 80007f6:	4b19      	ldr	r3, [pc, #100]	@ (800085c <querry_Calib_BMP+0x168>)
+ 80007f6:	4b19      	ldr	r3, [pc, #100]	@ (800085c <query_Calib_BMP+0x168>)
  80007f8:	681b      	ldr	r3, [r3, #0]
  80007fa:	430a      	orrs	r2, r1
  80007fc:	b212      	sxth	r2, r2
  80007fe:	821a      	strh	r2, [r3, #16]
 	calib_names->dig_P7 = (int16_t)((calib_data[19] << 8) | calib_data[18]);
- 8000800:	4b15      	ldr	r3, [pc, #84]	@ (8000858 <querry_Calib_BMP+0x164>)
+ 8000800:	4b15      	ldr	r3, [pc, #84]	@ (8000858 <query_Calib_BMP+0x164>)
  8000802:	7cdb      	ldrb	r3, [r3, #19]
  8000804:	021b      	lsls	r3, r3, #8
  8000806:	b219      	sxth	r1, r3
- 8000808:	4b13      	ldr	r3, [pc, #76]	@ (8000858 <querry_Calib_BMP+0x164>)
+ 8000808:	4b13      	ldr	r3, [pc, #76]	@ (8000858 <query_Calib_BMP+0x164>)
  800080a:	7c9b      	ldrb	r3, [r3, #18]
  800080c:	b21a      	sxth	r2, r3
- 800080e:	4b13      	ldr	r3, [pc, #76]	@ (800085c <querry_Calib_BMP+0x168>)
+ 800080e:	4b13      	ldr	r3, [pc, #76]	@ (800085c <query_Calib_BMP+0x168>)
  8000810:	681b      	ldr	r3, [r3, #0]
  8000812:	430a      	orrs	r2, r1
  8000814:	b212      	sxth	r2, r2
  8000816:	825a      	strh	r2, [r3, #18]
 	calib_names->dig_P8 = (int16_t)((calib_data[21] << 8) | calib_data[20]);
- 8000818:	4b0f      	ldr	r3, [pc, #60]	@ (8000858 <querry_Calib_BMP+0x164>)
+ 8000818:	4b0f      	ldr	r3, [pc, #60]	@ (8000858 <query_Calib_BMP+0x164>)
  800081a:	7d5b      	ldrb	r3, [r3, #21]
  800081c:	021b      	lsls	r3, r3, #8
  800081e:	b219      	sxth	r1, r3
- 8000820:	4b0d      	ldr	r3, [pc, #52]	@ (8000858 <querry_Calib_BMP+0x164>)
+ 8000820:	4b0d      	ldr	r3, [pc, #52]	@ (8000858 <query_Calib_BMP+0x164>)
  8000822:	7d1b      	ldrb	r3, [r3, #20]
  8000824:	b21a      	sxth	r2, r3
- 8000826:	4b0d      	ldr	r3, [pc, #52]	@ (800085c <querry_Calib_BMP+0x168>)
+ 8000826:	4b0d      	ldr	r3, [pc, #52]	@ (800085c <query_Calib_BMP+0x168>)
  8000828:	681b      	ldr	r3, [r3, #0]
  800082a:	430a      	orrs	r2, r1
  800082c:	b212      	sxth	r2, r2
  800082e:	829a      	strh	r2, [r3, #20]
 	calib_names->dig_P9 = (int16_t)((calib_data[23] << 8) | calib_data[22]);
- 8000830:	4b09      	ldr	r3, [pc, #36]	@ (8000858 <querry_Calib_BMP+0x164>)
+ 8000830:	4b09      	ldr	r3, [pc, #36]	@ (8000858 <query_Calib_BMP+0x164>)
  8000832:	7ddb      	ldrb	r3, [r3, #23]
  8000834:	021b      	lsls	r3, r3, #8
  8000836:	b219      	sxth	r1, r3
- 8000838:	4b07      	ldr	r3, [pc, #28]	@ (8000858 <querry_Calib_BMP+0x164>)
+ 8000838:	4b07      	ldr	r3, [pc, #28]	@ (8000858 <query_Calib_BMP+0x164>)
  800083a:	7d9b      	ldrb	r3, [r3, #22]
  800083c:	b21a      	sxth	r2, r3
- 800083e:	4b07      	ldr	r3, [pc, #28]	@ (800085c <querry_Calib_BMP+0x168>)
+ 800083e:	4b07      	ldr	r3, [pc, #28]	@ (800085c <query_Calib_BMP+0x168>)
  8000840:	681b      	ldr	r3, [r3, #0]
  8000842:	430a      	orrs	r2, r1
  8000844:	b212      	sxth	r2, r2
@@ -1538,12 +1538,12 @@ int main(void)
  8000fba:	f004 ff81 	bl	8005ec0 <puts>
 
 	// get id, calib, and config data
-	querry_ID_BMP();
- 8000fbe:	f7ff fb3f 	bl	8000640 <querry_ID_BMP>
-	querry_Config_BMP();
- 8000fc2:	f7ff fb65 	bl	8000690 <querry_Config_BMP>
-	querry_Calib_BMP();
- 8000fc6:	f7ff fb95 	bl	80006f4 <querry_Calib_BMP>
+	query_ID_BMP();
+ 8000fbe:	f7ff fb3f 	bl	8000640 <query_ID_BMP>
+	query_Config_BMP();
+ 8000fc2:	f7ff fb65 	bl	8000690 <query_Config_BMP>
+	query_Calib_BMP();
+ 8000fc6:	f7ff fb95 	bl	80006f4 <query_Calib_BMP>
 
 	HAL_UART_Receive_IT (&huart4, (uint8_t *) UART4_rxBuffer, SIZE_OF_USART4_BUF); //usart rasp pi
  8000fca:	2207      	movs	r2, #7
