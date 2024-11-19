@@ -88,16 +88,16 @@ Reading a register's data using I2C is as follows :
 #define BMP_ADDR 0x77<<1 // BMP280 address
 #define BMP_ID_REG 0xD0 // adress of the ID register
 ```
-
-in the main loop : 
 ```C
 uint8_t id_buf[1];
 
-//question réponse capteur avec I2C pour ID capteur
-id_buf[0]= BMP_ID_REG;
-HAL_I2C_Master_Transmit(&hi2c1,BMP_ADDR,id_buf,1,HAL_MAX_DELAY);
-HAL_I2C_Master_Receive(&hi2c1,BMP_ADDR,id_buf,1,HAL_MAX_DELAY);
-printf("BMP280 ID : %x\r\n",id_buf[0]);
+void querry_ID_BMP(){
+	//question réponse capteur avec I2C pour ID capteur
+	id_buf[0]= BMP_ID_REG;
+	HAL_I2C_Master_Transmit(&hi2c1,BMP_ADDR,id_buf,1,HAL_MAX_DELAY);
+	HAL_I2C_Master_Receive(&hi2c1,BMP_ADDR,id_buf,1,HAL_MAX_DELAY);
+	printf("BMP280 ID : %x\r\n",id_buf[0]);
+}
 ```
 
 #### Communication with BMP280
@@ -113,16 +113,18 @@ We will use the following configuration: normal mode, oversampling pressure x16,
 #define BMP_ADDR_MODE 0xF4 // address of the "ctrl_meas" reg to set the modes/config
 #define BMP_MODE 01010111 //  010 oversampling t x2, 101 oversampling p x16,  11 mode normal
 ```
-main loop : 
 ```C
-//Configuration et vérification du capteur
 uint8_t data_config[2];
-data_config[0]= BMP_ADDR_MODE;
-data_config[1]= BMP_MODE;
-HAL_I2C_Master_Transmit(&hi2c1,BMP_ADDR,buf,1,HAL_MAX_DELAY);
-HAL_I2C_Master_Receive(&hi2c1,BMP_ADDR,buf,1,HAL_MAX_DELAY);
-printf("Registre : %x\r\n",buf[0]);
-printf("Mode : %x\r\n",buf[1]);
+
+void querry_Config_BMP(){
+	//Configuration et vérification du capteur
+	data_config[0]= BMP_ADDR_MODE;
+	data_config[1]= BMP_MODE;
+	HAL_I2C_Master_Transmit(&hi2c1,BMP_ADDR,data_config,2,HAL_MAX_DELAY);
+	HAL_I2C_Master_Receive(&hi2c1,BMP_ADDR,data_config,2,HAL_MAX_DELAY);
+	printf("Register : %x\r\n",data_config[0]);
+	printf("Mode : %x\r\n",data_config[1]);
+}
 ```
 #### Calibration, temperature and pressure recovery
 
@@ -144,25 +146,25 @@ typedef struct { // structure containing calibration registers names (datasheet 
     int16_t dig_P9;  //0x9E/0x9F
 } Struct_CalibDataNames;
 ```
-In the main loop :  
 ```C
-// Retrieving of calibration Data
-calib_reg[0] = BMP_CALIB_REG;
-HAL_I2C_Master_Transmit(&hi2c1, BMP_ADDR, calib_reg, 1, HAL_MAX_DELAY);
-HAL_I2C_Master_Receive(&hi2c1, BMP_ADDR, calib_data, BMP_CALIB_DATA_LENGTH, HAL_MAX_DELAY);
-calib_names->dig_T1 = (uint16_t)((calib_data[1] << 8) | calib_data[0]);
-calib_names->dig_T2 = (int16_t)((calib_data[3] << 8) | calib_data[2]);
-calib_names->dig_T3 = (int16_t)((calib_data[5] << 8) | calib_data[4]);
-calib_names->dig_P1 = (uint16_t)((calib_data[7] << 8) | calib_data[6]);
-calib_names->dig_P2 = (int16_t)((calib_data[9] << 8) | calib_data[8]);
-calib_names->dig_P3 = (int16_t)((calib_data[11] << 8) | calib_data[10]);
-calib_names->dig_P4 = (int16_t)((calib_data[13] << 8) | calib_data[12]);
-calib_names->dig_P5 = (int16_t)((calib_data[15] << 8) | calib_data[14]);
-calib_names->dig_P6 = (int16_t)((calib_data[17] << 8) | calib_data[16]);
-calib_names->dig_P7 = (int16_t)((calib_data[19] << 8) | calib_data[18]);
-calib_names->dig_P8 = (int16_t)((calib_data[21] << 8) | calib_data[20]);
-calib_names->dig_P9 = (int16_t)((calib_data[23] << 8) | calib_data[22]);
-
+void querry_Calib_BMP(){
+	// Retrieving of calibration Data
+	calib_reg[0] = BMP_CALIB_REG;
+	HAL_I2C_Master_Transmit(&hi2c1, BMP_ADDR, calib_reg, 1, HAL_MAX_DELAY);
+	HAL_I2C_Master_Receive(&hi2c1, BMP_ADDR, calib_data, BMP_CALIB_DATA_LENGTH, HAL_MAX_DELAY);
+	calib_names->dig_T1 = (uint16_t)((calib_data[1] << 8) | calib_data[0]);
+	calib_names->dig_T2 = (int16_t)((calib_data[3] << 8) | calib_data[2]);
+	calib_names->dig_T3 = (int16_t)((calib_data[5] << 8) | calib_data[4]);
+	calib_names->dig_P1 = (uint16_t)((calib_data[7] << 8) | calib_data[6]);
+	calib_names->dig_P2 = (int16_t)((calib_data[9] << 8) | calib_data[8]);
+	calib_names->dig_P3 = (int16_t)((calib_data[11] << 8) | calib_data[10]);
+	calib_names->dig_P4 = (int16_t)((calib_data[13] << 8) | calib_data[12]);
+	calib_names->dig_P5 = (int16_t)((calib_data[15] << 8) | calib_data[14]);
+	calib_names->dig_P6 = (int16_t)((calib_data[17] << 8) | calib_data[16]);
+	calib_names->dig_P7 = (int16_t)((calib_data[19] << 8) | calib_data[18]);
+	calib_names->dig_P8 = (int16_t)((calib_data[21] << 8) | calib_data[20]);
+	calib_names->dig_P9 = (int16_t)((calib_data[23] << 8) | calib_data[22]);
+}
 ```
 
 In the infinite loop of the STM32, we retrieve the raw values of temperature and pressure, then we send to the serial port the 32 bit uncompensated values of the temperature pressure.
@@ -170,22 +172,103 @@ In the infinite loop of the STM32, we retrieve the raw values of temperature and
 #define BMP_TEMP_PRESS_REG 0xF7 // 1st press register address
 #define BMP_TEMP_PRESS_DATA_LENGTH 6 // size of press + temp registers
 ```
-
 ```C
-while (1)
-{
-	//Retrieving the raw temp and press values
+void read_raw_t_p(int32_t *raw_press, int32_t *raw_temp){
 	uint8_t raw_data[BMP_TEMP_PRESS_DATA_LENGTH];
 	uint8_t reg = BMP_TEMP_PRESS_REG;
-	HAL_I2C_Master_Transmit(&hi2c1, BMP_ADDR, &reg, 1, HAL_MAX_DELAY);
-	HAL_I2C_Master_Receive(&hi2c1, BMP_ADDR, raw_data, BMP_TEMP_PRESS_DATA_LENGTH, HAL_MAX_DELAY);
-	*press = (int32_t)(((raw_data[0] << 16) | (raw_data[1] << 8) | raw_data[2]) >> 4);
-	*temp = (int32_t)(((raw_data[3] << 16) | (raw_data[4] << 8) | raw_data[5]) >> 4);
+
+	if (HAL_I2C_Master_Transmit(&hi2c1, BMP_ADDR, &reg, 1, HAL_MAX_DELAY)==HAL_OK){
+		HAL_I2C_Master_Receive(&hi2c1, BMP_ADDR, raw_data, BMP_TEMP_PRESS_DATA_LENGTH, HAL_MAX_DELAY);
+		*raw_press = (int32_t)(((raw_data[0] << 16) | (raw_data[1] << 8) | raw_data[2]) >> 4);
+		*raw_temp = (int32_t)(((raw_data[3] << 16) | (raw_data[4] << 8) | raw_data[5]) >> 4);
+		printf("Raw Temp = %d,\r\nRaw Press = %d\r\n", raw_temp, raw_press);
+	}
+	else{
+		printf("Erreur de communication sur le bus bus I2C\r\n");
+	}
 }
 ```
 
 #### Calculation of compensated temperature and pressure 
 
+The STM32 datasheet shows the code to compensate for temperature and pressure using the values of the calibration in the 32-bit integer format (we will not use floats for performance problems).  
+The temperature and pressure offset values are transmitted to the serial port in a readable format.  
+
+We have to redefine the type of the variable in the given code to fit the requirements of the datasheet :   
+
+```C
+typedef int32_t BMP280_S32_t;
+typedef uint32_t BMP280_U32_t;
+typedef int64_t BMP280_S64_t;
+```
+Here is the code to return the compensated temperature and pressure :   
+```C
+/ Returns temperature in DegC, resolution is 0.01 DegC. Output value of “5123�? equals 51.23 DegC.
+// t_fine carries fine temperature as global value
+
+BMP280_S32_t bmp280_compensate_T_int32(BMP280_S32_t adc_T,BMP280_CalibDataNames *calib_names)
+{
+	BMP280_S32_t var1, var2, T;
+	var1 = ((((adc_T>>3)-((BMP280_S32_t)calib_names->dig_T1<<1))) * ((BMP280_S32_t)calib_names->dig_T2)) >> 11;
+	var2 = (((((adc_T>>4)-((BMP280_S32_t)calib_names->dig_T1)) * ((adc_T>>4)-((BMP280_S32_t)calib_names->dig_T1))) >> 12) * ((BMP280_S32_t)calib_names->dig_T3)) >> 14;
+	t_fine = var1 + var2;
+	T = (t_fine * 5 + 128) >> 8;
+	return T;
+}
+
+// Returns pressure in Pa as unsigned 32 bit integer. Output value of “96386�? equals 96386 Pa = 963.86 hPa
+BMP280_U32_t bmp280_compensate_P_int64(BMP280_S32_t adc_P, BMP280_CalibDataNames *calib_names)
+{
+	BMP280_S64_t var1, var2, p;
+	var1 = ((BMP280_S64_t)t_fine)-128000;
+	var2 = var1 * var1 * (BMP280_S64_t)calib_names->dig_P6;
+	var2 = var2 + ((var1*(BMP280_S64_t)calib_names->dig_P5)<<17);
+	var2 = var2 + (((BMP280_S64_t)calib_names->dig_P4)<<35);
+	var1 = ((var1 * var1 * (BMP280_S64_t)calib_names->dig_P3)>>8) + ((var1 * (BMP280_S64_t)calib_names->dig_P2)<<12);
+	var1 = (((((BMP280_S64_t)1)<<47)+var1))*((BMP280_S64_t)calib_names->dig_P1)>>33;
+	if (var1 == 0)
+	{
+		return 0; // avoid exception caused by division by zero
+	}
+	p = 1048576-adc_P;
+	p = (((p<<31)-var2)*3125)/var1;
+	var1 = (((BMP280_S64_t)calib_names->dig_P9) * (p>>13) * (p>>13)) >> 25;
+	var2 = (((BMP280_S64_t)calib_names->dig_P8) * p) >> 19;
+	p = ((p + var1 + var2) >> 8) + (((BMP280_S64_t)calib_names->dig_P7)<<4);
+	return (BMP280_U32_t)p;
+}
+```
+
+Finally, we use all the previous code in the main loop to get the temprature and pressure and display them using a serial terminal (TeraTerm) :
+
+```C
+int main(void){
+	HAL_Init();
+	SystemClock_Config();
+	MX_GPIO_Init();
+	MX_USART2_UART_Init();
+	MX_CAN1_Init();
+	MX_UART4_Init();
+	MX_TIM2_Init();
+	MX_I2C1_Init();
+
+	printf("==== TP BUS & NETWORK ====\r\n");
+	querry_ID_BMP();
+	querry_Config_BMP();
+	querry_Calib_BMP();
+
+	while (1)
+	{
+	//Retrieving the raw temp and press values
+	read_raw_t_p(&raw_temp, &raw_press);
+
+	// Compensated temperature and pressure
+	int32_t temp = bmp280_compensate_T_int32(raw_temp, calib_names);
+	int32_t press = bmp280_compensate_P_int64(raw_press, calib_names);
+	printf("Compensated Temp = %ld C\r\nCompensated Press = %ld Pa\r\n", temp/100, press/256);
+	}
+}
+```
 
 ## Lab Session 2 : STM32 - Raspberry Pi 0 WIFI interfacing
 During this session we are going to establish the communication between the two boards Raspberry Pi 0 WIFI ("RPi" below) and STM32.
