@@ -78,7 +78,7 @@ while (1)
 		HAL_UART_Transmit( &huart2, &data, 1, HAL_MAX_DELAY );
 	}
 ```
-### I2C communication 
+### 2.3 I2C communication 
 #### BMP280 Identification 
 Reading a register's data using I2C is as follows :  
 1 - send the address of the registry ID  
