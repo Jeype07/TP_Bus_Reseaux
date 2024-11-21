@@ -519,7 +519,7 @@ app = FastAPI()
 ser = None
 
 class SerialConnectionRequest(BaseModel):
-    port: str = "COM11"  # e.g., "COM3" on Windows or "/dev/ttyUSB0" on Linux
+    port: str = "COM4"  # e.g., "COM3" on Windows or "/dev/ttyUSB0" on Linux
     baudrate: int = 115200  # Default baudrate
 
 class Command(BaseModel):
@@ -547,11 +547,13 @@ async def disconnect_serial():
 
 @app.post("/stm32/send-command/")
 async def send_command(command: Command):
-    """Send command on serial port for STM32"""
+    """Envoie une commande au STM32."""
+      
+    # Envoi de la commande
     try:
         ser.write(command.action.encode('utf-8'))
-        # Read response of STM32
-        await asyncio.sleep(0.1)  # Delay to let STM32 respond
+        # Lecture de la réponse de la STM32
+        await asyncio.sleep(0.1)  # Petit délai pour donner le temps à la STM32 de répondre
         response = ser.readline().decode('utf-8')
         cleaned_response = response.replace('\x00', '').strip()
         return {"status": "Command sent", "response": cleaned_response}
@@ -559,13 +561,15 @@ async def send_command(command: Command):
     except serial.SerialException as e:
         raise HTTPException(status_code=500, detail=f"Serial communication error: {e}")
 
-# Variables to store data
-temperatures = [10,11] //test values
+# Stockage des températures, pressions et échelle
+temperatures = [10,11]
 pressures = []
-scale = "K"  # Initialise scale in Kelvin
+scale = "K"  # Initialisation de l'échelle en Kelvin
 
+# Modèle pour la température et la pression
 class Temperature(BaseModel):
-    temp: float     
+    temp: float 
+    
 
 class Pressure(BaseModel):
     pres: float
@@ -573,27 +577,49 @@ class Pressure(BaseModel):
 class ScaleChange(BaseModel):
     scale: str
 
-# POST /temp
+
+# Créer une nouvelle température (POST /temp/)
 @app.post("/temp/", status_code=201)
 async def create_temperature(temp: Temperature):
-    temperatures.append(temp.temp)
-    return {"message": "Temperature added", "temperature": temp.temp}
+    cmd = "GET_T"
+    # Envoi de la commande
+    try:
+        ser.write(cmd.encode('utf-8'))
+        # Lecture de la réponse de la STM32
+        await asyncio.sleep(0.1)  # Petit délai pour donner le temps à la STM32 de répondre
+        response = ser.readline().decode('utf-8')
+        cleaned_response = response.replace('\x00', '').strip()
+        temperatures.append(cleaned_response)
+        return {"message": "Temperature added", "temperature": temp.temp}
+    except serial.SerialException as e:
+        raise HTTPException(status_code=500, detail=f"Serial communication error: {e}")
+    
 
 
-# POST /press
+# Créer une nouvelle pression (POST /pres/)
 @app.post("/pres/", status_code=201)
 async def create_pressure(pres: Pressure):
-    pressures.append(pres.pres)
-    return {"message": "Pressure added", "pressure": pres.pres}
+    cmd = "GET_P"
+    # Envoi de la commande
+    try:
+        ser.write(cmd.encode('utf-8'))
+        # Lecture de la réponse de la STM32
+        await asyncio.sleep(0.1)  # Petit délai pour donner le temps à la STM32 de répondre
+        response = ser.readline().decode('utf-8')
+        cleaned_response = response.replace('\x00', '').strip()
+        pressures.append(cleaned_response)
+        return {"message": "Pressure added", "pressure": pres.pres}
+    except serial.SerialException as e:
+        raise HTTPException(status_code=500, detail=f"Serial communication error: {e}")
 
 
-# GET /temp
+# Récupérer toutes les températures précédentes (GET /temp/)
 @app.get("/temp/", response_model=List[float])
 async def get_temperatures():
     return temperatures
 
 
-# GET /temp/{x}
+# Récupérer une température spécifique (GET /temp/{x})
 @app.get("/temp/{x}")
 async def get_temperature(x: int):
     if 0 <= x < len(temperatures):
@@ -602,13 +628,13 @@ async def get_temperature(x: int):
         raise HTTPException(status_code=404, detail="Temperature not found")
 
 
-# 5. GET /pres/
+# 5. Récupérer toutes les pressions précédentes (GET /pres/)
 @app.get("/pres/", response_model=List[float])
 async def get_pressures():
     return pressures
 
 
-# 6. GET /pres/{x}
+# 6. Récupérer une pression spécifique (GET /pres/{x})
 @app.get("/pres/{x}")
 async def get_pressure(x: int):
     if 0 <= x < len(pressures):
@@ -617,13 +643,13 @@ async def get_pressure(x: int):
         raise HTTPException(status_code=404, detail="Pressure not found")
 
 
-# 7. GET /scale/
+# 7. Récupérer l'échelle (GET /scale/)
 @app.get("/scale/")
 async def get_scale():
     return {"scale": scale}
 
 
-# 8. GET /angle/
+# 8. Calculer l'angle (temp * scale) (GET /angle/)
 @app.get("/angle/")
 async def get_angle():
     if temperatures:
@@ -634,7 +660,7 @@ async def get_angle():
         raise HTTPException(status_code=400, detail="No temperature available")
 
 
-# 9. POST /scale/{x}
+# 9. Changer l'échelle pour l'index {x} (POST /scale/{x})
 @app.post("/scale/{x}")
 async def change_scale(x: int, scale_change: ScaleChange):
     global scale
@@ -644,7 +670,7 @@ async def change_scale(x: int, scale_change: ScaleChange):
     return {"message": f"Scale changed to {scale}", "new_scale": scale}
 
 
-# 10. DELETE /temp/{x}
+# 10. Supprimer une température spécifique (DELETE /temp/{x})
 @app.delete("/temp/{x}")
 async def delete_temperature(x: int):
     if 0 <= x < len(temperatures):
@@ -654,7 +680,7 @@ async def delete_temperature(x: int):
         raise HTTPException(status_code=404, detail="Temperature not found")
 
 
-# 11. DELETE /pres/{x}
+# 11. Supprimer une pression spécifique (DELETE /pres/{x})
 @app.delete("/pres/{x}")
 async def delete_pressure(x: int):
     if 0 <= x < len(pressures):
@@ -666,5 +692,6 @@ async def delete_pressure(x: int):
 #uvicorn hello:app --host 192.168.88.231  launch serv on rasp pi
 
 #uvicorn TP:app --host 0.0.0.0 --port 80 lauch serv on PC for network
+
 ```
  
