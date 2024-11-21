@@ -450,6 +450,8 @@ PSC = 5
 seg 1 : 15 times  
 seg 2 : 2 times  
 
+<p align="center"> <img src="Pictures/bittiming.png" width="100%" height="auto" /> </p>
+
 ### 5.1 Motor control
 
 First, a simple code is set up that moves the motor 90° in one direction and then 90° in the other, with a period of 1 second.  
