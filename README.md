@@ -18,21 +18,22 @@ From the datasheet of the pressure sensor BMP280 we can determine the following 
 - the register and the value to identify this component : register : 0xD0 "id", value : 0x58
 - the register and value to set the component in normal mode : [0:1] bits in control register 0xF4 have to be set to 11
 - the registers containing the component calibration : registers "calib25" to "calib00" with adresses 0xA1 to 0x88
-- the temperature records (and format) : "temp" registers contains the raw temperature measurement data output up[19:0] at the adresses 0xFA, 0xFB, and 0xFC 
-- the pressure registers (and format) : "press" registers contains the raw pressure measurement data output up[19:0] at the adresses 0xF7, 0xF8, and 0xF9
+- the temperature records (and format) : "temp" registers contains the raw temperature measurement data output ut[19:0] at the adresses 0xFA, 0xFB, and 0xFC 
+- the pressure registers (and format) : "press" registers contains the raw pressure measurement data output ut[19:0] at the adresses 0xF7, 0xF8, and 0xF9
 - the functions for calculating the temperature and pressure compensated, in 32-bit integer format : cf datasheet p.23
 
 ### 2.2 STM32 Setup
 
 For this lab sessions, we will use the STM32446RETX board on STM32CubeIDE with the following connections : 
-- PB8 : I2C1_SDA
-- PB9 : I2C1_SCL
-- PA2 : USART2_TX (USB)
-- PA3 : USART2_RX
+
 - PA0 : UART4_TX (communication with raspberry pi)
-- PA1 : UART4_RX
-- PA12 : CAN1_TX
-- PA11 : CAN1_RX
+- PA1 : UART4_RX (communication with raspberry pi)
+- PA2 : USART2_TX (USB)
+- PA3 : USART2_RX (USB)
+- PB6 : I2C1_SCL
+- PB7 : I2C1_SDA
+- PB8 : CAN1_RX
+- PB9 : CAN1_TX
 
 We modified the printf fonction to make it returns its strings on the UART to USB link, by adding the following code to the stm32f4xx_hal_msp.c file :  
 
