@@ -377,7 +377,7 @@ def api_welcome_index(index):
 ```
 <p align="center"> <img src="Pictures/content_type1.png" width="60%" height="auto" /> </p>
 
-<p align="center"> <img src="Pictures/content_type2.png" width="60%" height="auto" /> </p>
+<p align="center"> <img src="Pictures/content_type2.png" width="100%" height="auto" /> </p>
 
 ```py
 import Flask
@@ -400,7 +400,7 @@ def api_welcome_index(index):
     return jsonify({"index": index, "val": welcome[index]}), {"Content-Type": "application/json"}
 ```
 
-<p align="center"> <img src="Pictures/content_type_json.png" width="60%" height="auto" /> </p>
+<p align="center"> <img src="Pictures/content_type_json.png" width="100%" height="auto" /> </p>
 
 Error 404
 
