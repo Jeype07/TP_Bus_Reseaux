@@ -252,19 +252,18 @@ int main(void){
 	MX_I2C1_Init();
 
 	printf("==== TP BUS & NETWORK ====\r\n");
-	querry_ID_BMP();
-	querry_Config_BMP();
-	querry_Calib_BMP();
+
+	// get id, calib, and config data
+	query_ID_BMP();
+	query_Config_BMP();
+	query_Calib_BMP();
+
+	HAL_UART_Receive_IT (&huart4, (uint8_t *) UART4_rxBuffer, SIZE_OF_USART4_BUF); //usart rasp pi
+
 
 	while (1)
 	{
-	//Retrieving the raw temp and press values
-	read_raw_t_p(&raw_temp, &raw_press);
-
-	// Compensated temperature and pressure
-	int32_t temp = bmp280_compensate_T_int32(raw_temp, calib_names);
-	int32_t press = bmp280_compensate_P_int64(raw_press, calib_names);
-	printf("Compensated Temp = %ld C\r\nCompensated Press = %ld Pa\r\n", temp/100, press/256);
+		get_BMP_meas();
 	}
 }
 ```
@@ -503,7 +502,7 @@ else{
 	TxData[1]=1;
 }
 ```
-## Lab session 4 : Integration I²C - Serial - REST - CAN
+## Lab session 5 : Integration I²C - Serial - REST - CAN
 
 FASTAPI code
 ```py
