@@ -1,13 +1,13 @@
 # TP_Bus_Reseaux #
 ### Authors : JP Thomar, P. Boulot
 ### Professor : C. Barès 
-### Topics : Lab Sessions on communiaction between STM32F4 and Raspberry Pi0, and sensors using I2C, CAN, UART, and WiFi 
+### Topics : Lab Sessions on communiaction between STM32F4, Raspberry Pi0 and sensors using I2C, CAN, UART, and WiFi communication 
 
 ##  Lab Session 1 : I2C Bus.  
 
 Objective: Interfacing a STM32 with I2C sensors  
 
-The first step is to set up communication between the microcontroller and sensors (temperature, pressure, accelerometer...) via the I2C bus.
+The first step is to set up the communication between the microcontroller and sensors (temperature, pressure, accelerometer...) via the I2C bus.
 The sensor has two I2C components, which share the same bus. The STM32 will act as master on the bus.
 The STM32 code will be written in C language, using the HAL library.
 
@@ -18,23 +18,24 @@ From the datasheet of the pressure sensor BMP280 we can determine the following 
 - the register and the value to identify this component : register : 0xD0 "id", value : 0x58
 - the register and value to set the component in normal mode : [0:1] bits in control register 0xF4 have to be set to 11
 - the registers containing the component calibration : registers "calib25" to "calib00" with adresses 0xA1 to 0x88
-- the temperature records (and format) : "temp" registers contains the rax temperature measurement data output ut[19:0] at the adresses 0xFA, 0xFB, and 0xFC 
-- the pressure registers (and format) : "press" registers contains the raw pressure measurement data output up[19:0] at the adresses 0xF7, 0xF8, and 0xF9
+- the temperature records (and format) : "temp" registers contains the raw temperature measurement data output ut[19:0] at the adresses 0xFA, 0xFB, and 0xFC 
+- the pressure registers (and format) : "press" registers contains the raw pressure measurement data output ut[19:0] at the adresses 0xF7, 0xF8, and 0xF9
 - the functions for calculating the temperature and pressure compensated, in 32-bit integer format : cf datasheet p.23
 
 ### 2.2 STM32 Setup
 
 For this lab sessions, we will use the STM32446RETX board on STM32CubeIDE with the following connections : 
-- PB8 : I2C1_SDA
-- PB9 : I2C1_SCL
-- PA2 : USART2_TX (USB)
-- PA3 : USART2_RX
-- PA0 : UART4_TX (communication with raspberry pi)
-- PA1 : UART4_RX
-- PA12 : CAN1_TX
-- PA11 : CAN1_RX
 
-We modify now the printf fonction to so that it returns its strings on the UART to USB link, by adding the following code to the stm32f4xx_hal_msp.c file :  
+- PA0 : UART4_TX (communication with raspberry pi)
+- PA1 : UART4_RX (communication with raspberry pi)
+- PA2 : USART2_TX (USB)
+- PA3 : USART2_RX (USB)
+- PB6 : I2C1_SCL
+- PB7 : I2C1_SDA
+- PB8 : CAN1_RX
+- PB9 : CAN1_TX
+
+We modified the printf fonction to make it returns its strings on the UART to USB link, by adding the following code to the stm32f4xx_hal_msp.c file :  
 
 ```C
 /* USER CODE BEGIN PV */
@@ -71,11 +72,9 @@ in main loop :
 uint8_t data; 
 while (1)
 	{
-		//code bloquant pour écho
+		//blocking code
 		HAL_UART_Receive( &huart2, &data, 1, HAL_MAX_DELAY );
-		printf("\r\n");
 		printf("%s\r\n",&data);
-		HAL_UART_Transmit( &huart2, &data, 1, HAL_MAX_DELAY );
 	}
 ```
 ### 2.3 I2C communication 
@@ -91,8 +90,8 @@ Reading a register's data using I2C is as follows :
 ```C
 uint8_t id_buf[1];
 
-void querry_ID_BMP(){
-	//question réponse capteur avec I2C pour ID capteur
+void query_ID_BMP(){
+	//query ID of the sensor BMP280
 	id_buf[0]= BMP_ID_REG;
 	HAL_I2C_Master_Transmit(&hi2c1,BMP_ADDR,id_buf,1,HAL_MAX_DELAY);
 	HAL_I2C_Master_Receive(&hi2c1,BMP_ADDR,id_buf,1,HAL_MAX_DELAY);
@@ -116,12 +115,12 @@ We will use the following configuration: normal mode, oversampling pressure x16,
 ```C
 uint8_t data_config[2];
 
-void querry_Config_BMP(){
-	//Configuration et vérification du capteur
+void query_Config_BMP(){
+	//Configuration and verification of the sensor
 	data_config[0]= BMP_ADDR_MODE;
 	data_config[1]= BMP_MODE;
-	HAL_I2C_Master_Transmit(&hi2c1,BMP_ADDR,data_config,2,HAL_MAX_DELAY);
-	HAL_I2C_Master_Receive(&hi2c1,BMP_ADDR,data_config,2,HAL_MAX_DELAY);
+	HAL_I2C_Master_Transmit(&hi2c1,BMP_ADDR,data_config,2,HAL_MAX_DELAY); //Send configuration to sensor
+	HAL_I2C_Master_Receive(&hi2c1,BMP_ADDR,data_config,2,HAL_MAX_DELAY); //Recieve set configuration of sensor
 	printf("Register : %x\r\n",data_config[0]);
 	printf("Mode : %x\r\n",data_config[1]);
 }
@@ -147,11 +146,11 @@ typedef struct { // structure containing calibration registers names (datasheet 
 } Struct_CalibDataNames;
 ```
 ```C
-void querry_Calib_BMP(){
+void query_Calib_BMP(){
 	// Retrieving of calibration Data
 	calib_reg[0] = BMP_CALIB_REG;
-	HAL_I2C_Master_Transmit(&hi2c1, BMP_ADDR, calib_reg, 1, HAL_MAX_DELAY);
-	HAL_I2C_Master_Receive(&hi2c1, BMP_ADDR, calib_data, BMP_CALIB_DATA_LENGTH, HAL_MAX_DELAY);
+	HAL_I2C_Master_Transmit(&hi2c1, BMP_ADDR, calib_reg, 1, HAL_MAX_DELAY); //Query calibration of sensor
+	HAL_I2C_Master_Receive(&hi2c1, BMP_ADDR, calib_data, BMP_CALIB_DATA_LENGTH, HAL_MAX_DELAY); //Receive calibration of the sensor
 	calib_names->dig_T1 = (uint16_t)((calib_data[1] << 8) | calib_data[0]);
 	calib_names->dig_T2 = (int16_t)((calib_data[3] << 8) | calib_data[2]);
 	calib_names->dig_T3 = (int16_t)((calib_data[5] << 8) | calib_data[4]);
@@ -191,7 +190,7 @@ void read_raw_t_p(int32_t *raw_press, int32_t *raw_temp){
 
 #### Calculation of compensated temperature and pressure 
 
-The STM32 datasheet shows the code to compensate for temperature and pressure using the values of the calibration in the 32-bit integer format (we will not use floats for performance problems).  
+The STM32 datasheet shows the code to compensate the temperature and pressure using the values of the calibration in the 32-bit integer format (we will not use floats for performance problems).  
 The temperature and pressure offset values are transmitted to the serial port in a readable format.  
 
 We have to redefine the type of the variable in the given code to fit the requirements of the datasheet :   
@@ -270,7 +269,7 @@ int main(void){
 }
 ```
 
-## Lab Session 2 : STM32 - Raspberry Pi 0 WIFI interfacing
+## Lab Session 2 : STM32 - Raspberry Pi 0 WIFI interfacing using serial communication
 During this session we are going to establish the communication between the two boards Raspberry Pi 0 WIFI ("RPi" below) and STM32.
 
 ### 3.1 Setting and start up of the Raspberry Pi 0 Wifi
@@ -279,12 +278,13 @@ First, we follow a few steps to prepare the RPi:
 - Download the image "Raspberry Pi OS (32-bit) Lite" on the SD card. 
 - Use the Rpi_imager software to install it on the SD card.  
 Host name : raspberrypiJPP  
-Id : TPBUSJPP , Login : TPBUSJPP  
+Id : TPBUSJPP , Password : TPBUSJPP  
 Wifi configuration : SSID = ESE_Bus_Network / PW = **********  
 Local settings : Time zone : Europe/Paris, Keyboard type : fr  
 
 - A free IP adress in the network is assigned to the RPi : 192.168.88.231
 - Connect the Pi0 to the PC via SSH using the following command : "ssh TPBUSJPP@192.168.88.231".
+- Enter the password : TPBUSJPP
 
 ### 3.2 Serial port  
 Loopback  
@@ -311,173 +311,6 @@ PUTCHAR_PROTOTYPE
 ### 3.3. Command from Python
 
 We create a script in Python3 that allows to communicate with STM32.  
-
-```py
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from typing import List
-import serial
-import asyncio
-
-app = FastAPI()
-
-# Global variable to manage the serial connection
-ser = None
-
-class SerialConnectionRequest(BaseModel):
-    port: str = "COM11"  # e.g., "COM3" on Windows or "/dev/ttyUSB0" on Linux
-    baudrate: int = 115200  # Default baudrate
-
-class Command(BaseModel):
-    action: str
-
-@app.post("/connect")
-async def connect_to_serial(request: SerialConnectionRequest):
-    global ser
-    if ser and ser.is_open:
-        return {"status": "Already connected", "port": ser.port}
-    
-    try:
-        ser = serial.Serial(port=request.port, baudrate=request.baudrate, timeout=1)
-        return {"status": "Connected", "port": ser.port, "baudrate": ser.baudrate}
-    except serial.SerialException as e:
-        raise HTTPException(status_code=400, detail=f"Failed to connect: {str(e)}")
-
-@app.post("/disconnect")
-async def disconnect_serial():
-    global ser
-    if ser and ser.is_open:
-        ser.close()
-        return {"status": "Disconnected"}
-    return {"status": "No active connection"}
-
-@app.post("/stm32/send-command/")
-async def send_command(command: Command):
-    """Envoie une commande au STM32."""
-      
-    # Envoi de la commande
-    try:
-        ser.write(command.action.encode('utf-8'))
-        # Lecture de la réponse de la STM32
-        await asyncio.sleep(0.1)  # Petit délai pour donner le temps à la STM32 de répondre
-        response = ser.readline().decode('utf-8')
-        cleaned_response = response.replace('\x00', '').strip()
-        return {"status": "Command sent", "response": cleaned_response}
-
-    except serial.SerialException as e:
-        raise HTTPException(status_code=500, detail=f"Serial communication error: {e}")
-
-# Stockage des températures, pressions et échelle
-temperatures = [10,11]
-pressures = []
-scale = "K"  # Initialisation de l'échelle en Kelvin
-
-# Modèle pour la température et la pression
-class Temperature(BaseModel):
-    temp: float 
-    
-
-class Pressure(BaseModel):
-    pres: float
-
-class ScaleChange(BaseModel):
-    scale: str
-
-
-# Créer une nouvelle température (POST /temp/)
-@app.post("/temp/", status_code=201)
-async def create_temperature(temp: Temperature):
-    temperatures.append(temp.temp)
-    return {"message": "Temperature added", "temperature": temp.temp}
-
-
-# Créer une nouvelle pression (POST /pres/)
-@app.post("/pres/", status_code=201)
-async def create_pressure(pres: Pressure):
-    pressures.append(pres.pres)
-    return {"message": "Pressure added", "pressure": pres.pres}
-
-
-# Récupérer toutes les températures précédentes (GET /temp/)
-@app.get("/temp/", response_model=List[float])
-async def get_temperatures():
-    return temperatures
-
-
-# Récupérer une température spécifique (GET /temp/{x})
-@app.get("/temp/{x}")
-async def get_temperature(x: int):
-    if 0 <= x < len(temperatures):
-        return {"temperature": temperatures[x]}
-    else:
-        raise HTTPException(status_code=404, detail="Temperature not found")
-
-
-# 5. Récupérer toutes les pressions précédentes (GET /pres/)
-@app.get("/pres/", response_model=List[float])
-async def get_pressures():
-    return pressures
-
-
-# 6. Récupérer une pression spécifique (GET /pres/{x})
-@app.get("/pres/{x}")
-async def get_pressure(x: int):
-    if 0 <= x < len(pressures):
-        return {"pressure": pressures[x]}
-    else:
-        raise HTTPException(status_code=404, detail="Pressure not found")
-
-
-# 7. Récupérer l'échelle (GET /scale/)
-@app.get("/scale/")
-async def get_scale():
-    return {"scale": scale}
-
-
-# 8. Calculer l'angle (temp * scale) (GET /angle/)
-@app.get("/angle/")
-async def get_angle():
-    if temperatures:
-        # Exemple de calcul, vous pouvez ajuster selon la logique
-        angle = temperatures[-1] * (273 if scale == "K" else 1)
-        return {"angle": angle}
-    else:
-        raise HTTPException(status_code=400, detail="No temperature available")
-
-
-# 9. Changer l'échelle pour l'index {x} (POST /scale/{x})
-@app.post("/scale/{x}")
-async def change_scale(x: int, scale_change: ScaleChange):
-    global scale
-    if scale_change.scale not in ["K", "C", "F"]:
-        raise HTTPException(status_code=400, detail="Invalid scale")
-    scale = scale_change.scale
-    return {"message": f"Scale changed to {scale}", "new_scale": scale}
-
-
-# 10. Supprimer une température spécifique (DELETE /temp/{x})
-@app.delete("/temp/{x}")
-async def delete_temperature(x: int):
-    if 0 <= x < len(temperatures):
-        deleted_temp = temperatures.pop(x)
-        return {"message": "Temperature deleted", "deleted_temperature": deleted_temp}
-    else:
-        raise HTTPException(status_code=404, detail="Temperature not found")
-
-
-# 11. Supprimer une pression spécifique (DELETE /pres/{x})
-@app.delete("/pres/{x}")
-async def delete_pressure(x: int):
-    if 0 <= x < len(pressures):
-        deleted_pres = pressures.pop(x)
-        return {"message": "Pressure deleted", "deleted_pressure": deleted_pres}
-    else:
-        raise HTTPException(status_code=404, detail="Pressure not found")
-
-#uvicorn hello:app --host 192.168.88.231  launch serv on rasp pi
-
-#uvicorn TP:app --host 0.0.0.0 --port 80 lauch serv on PC for network
-```
 
 ## Lab Session 3 : REST interface
 Id : jpp , Login : TPBUSJPP  
@@ -545,7 +378,7 @@ def api_welcome_index(index):
 ```
 <p align="center"> <img src="Pictures/content_type1.png" width="60%" height="auto" /> </p>
 
-<p align="center"> <img src="Pictures/content_type2.png" width="60%" height="auto" /> </p>
+<p align="center"> <img src="Pictures/content_type2.png" width="100%" height="auto" /> </p>
 
 ```py
 import Flask
@@ -568,7 +401,7 @@ def api_welcome_index(index):
     return jsonify({"index": index, "val": welcome[index]}), {"Content-Type": "application/json"}
 ```
 
-<p align="center"> <img src="Pictures/content_type_json.png" width="60%" height="auto" /> </p>
+<p align="center"> <img src="Pictures/content_type_json.png" width="100%" height="auto" /> </p>
 
 Error 404
 
@@ -602,6 +435,8 @@ def page_not_found(error):
 ```
 <p align="center"> <img src="Pictures/test_404.png" width="60%" height="auto" /> </p>
 
+
+
 ## Lab session 4 : CAN Bus
 
 Objective: Implementation of a device (Stepper motor) on CAN bus
@@ -616,18 +451,23 @@ PSC = 5
 seg 1 : 15 times  
 seg 2 : 2 times  
 
-### 5.1 Pilotage du moteur
+<p align="center"> <img src="Pictures/bittiming.png" width="100%" height="auto" /> </p>
+
+### 5.1 Motor control
 
 First, a simple code is set up that moves the motor 90° in one direction and then 90° in the other, with a period of 1 second.  
 
 The following HAL primitives are used for this:
-HAL_StatusTypeDef HAL_CAN_Start (CAN_HandleTypeDef * hcan)  
+```C
+HAL_StatusTypeDef HAL_CAN_Start (CAN_HandleTypeDef * hcan)
+``` 
 to activate the CAN module and  
-
-HAL_StatusTypeDef HAL_CAN_AddTxMessage (CAN_HandleTypeDef * hcan, CAN_TxHeaderTypeDef * pHeader, uint8_t aData[], uint32_t * pTxMailbox)  
+```C
+HAL_StatusTypeDef HAL_CAN_AddTxMessage (CAN_HandleTypeDef * hcan, CAN_TxHeaderTypeDef * pHeader, uint8_t aData[], uint32_t * pTxMailbox)
+```
 to send a message.  
 
-In the main loop : 
+In the main program : 
 ```C
 // Variables CAN
 CAN_TxHeaderTypeDef   TxHeader;
@@ -663,7 +503,168 @@ else{
 	TxData[1]=1;
 }
 ```
+## Lab session 4 : Integration I²C - Serial - REST - CAN
+
+FASTAPI code
+```py
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from typing import List
+import serial
+import asyncio
+
+app = FastAPI()
+
+# Global variable to manage the serial connection
+ser = None
+
+class SerialConnectionRequest(BaseModel):
+    port: str = "COM11"  # e.g., "COM3" on Windows or "/dev/ttyUSB0" on Linux
+    baudrate: int = 115200  # Default baudrate
+
+class Command(BaseModel):
+    action: str
+
+@app.post("/connect")
+async def connect_to_serial(request: SerialConnectionRequest):
+    global ser
+    if ser and ser.is_open:
+        return {"status": "Already connected", "port": ser.port}
+    
+    try:
+        ser = serial.Serial(port=request.port, baudrate=request.baudrate, timeout=1)
+        return {"status": "Connected", "port": ser.port, "baudrate": ser.baudrate}
+    except serial.SerialException as e:
+        raise HTTPException(status_code=400, detail=f"Failed to connect: {str(e)}")
+
+@app.post("/disconnect")
+async def disconnect_serial():
+    global ser
+    if ser and ser.is_open:
+        ser.close()
+        return {"status": "Disconnected"}
+    return {"status": "No active connection"}
+
+@app.post("/stm32/send-command/")
+async def send_command(command: Command):
+    """Send command on serial port for STM32"""
+    try:
+        ser.write(command.action.encode('utf-8'))
+        # Read response of STM32
+        await asyncio.sleep(0.1)  # Delay to let STM32 respond
+        response = ser.readline().decode('utf-8')
+        cleaned_response = response.replace('\x00', '').strip()
+        return {"status": "Command sent", "response": cleaned_response}
+
+    except serial.SerialException as e:
+        raise HTTPException(status_code=500, detail=f"Serial communication error: {e}")
+
+# Variables to store data
+temperatures = [10,11] //test values
+pressures = []
+scale = "K"  # Initialise scale in Kelvin
+
+class Temperature(BaseModel):
+    temp: float     
+
+class Pressure(BaseModel):
+    pres: float
+
+class ScaleChange(BaseModel):
+    scale: str
+
+# POST /temp
+@app.post("/temp/", status_code=201)
+async def create_temperature(temp: Temperature):
+    temperatures.append(temp.temp)
+    return {"message": "Temperature added", "temperature": temp.temp}
 
 
+# POST /press
+@app.post("/pres/", status_code=201)
+async def create_pressure(pres: Pressure):
+    pressures.append(pres.pres)
+    return {"message": "Pressure added", "pressure": pres.pres}
 
+
+# GET /temp
+@app.get("/temp/", response_model=List[float])
+async def get_temperatures():
+    return temperatures
+
+
+# GET /temp/{x}
+@app.get("/temp/{x}")
+async def get_temperature(x: int):
+    if 0 <= x < len(temperatures):
+        return {"temperature": temperatures[x]}
+    else:
+        raise HTTPException(status_code=404, detail="Temperature not found")
+
+
+# 5. GET /pres/
+@app.get("/pres/", response_model=List[float])
+async def get_pressures():
+    return pressures
+
+
+# 6. GET /pres/{x}
+@app.get("/pres/{x}")
+async def get_pressure(x: int):
+    if 0 <= x < len(pressures):
+        return {"pressure": pressures[x]}
+    else:
+        raise HTTPException(status_code=404, detail="Pressure not found")
+
+
+# 7. GET /scale/
+@app.get("/scale/")
+async def get_scale():
+    return {"scale": scale}
+
+
+# 8. GET /angle/
+@app.get("/angle/")
+async def get_angle():
+    if temperatures:
+        # Exemple de calcul, vous pouvez ajuster selon la logique
+        angle = temperatures[-1] * (273 if scale == "K" else 1)
+        return {"angle": angle}
+    else:
+        raise HTTPException(status_code=400, detail="No temperature available")
+
+
+# 9. POST /scale/{x}
+@app.post("/scale/{x}")
+async def change_scale(x: int, scale_change: ScaleChange):
+    global scale
+    if scale_change.scale not in ["K", "C", "F"]:
+        raise HTTPException(status_code=400, detail="Invalid scale")
+    scale = scale_change.scale
+    return {"message": f"Scale changed to {scale}", "new_scale": scale}
+
+
+# 10. DELETE /temp/{x}
+@app.delete("/temp/{x}")
+async def delete_temperature(x: int):
+    if 0 <= x < len(temperatures):
+        deleted_temp = temperatures.pop(x)
+        return {"message": "Temperature deleted", "deleted_temperature": deleted_temp}
+    else:
+        raise HTTPException(status_code=404, detail="Temperature not found")
+
+
+# 11. DELETE /pres/{x}
+@app.delete("/pres/{x}")
+async def delete_pressure(x: int):
+    if 0 <= x < len(pressures):
+        deleted_pres = pressures.pop(x)
+        return {"message": "Pressure deleted", "deleted_pressure": deleted_pres}
+    else:
+        raise HTTPException(status_code=404, detail="Pressure not found")
+
+#uvicorn hello:app --host 192.168.88.231  launch serv on rasp pi
+
+#uvicorn TP:app --host 0.0.0.0 --port 80 lauch serv on PC for network
+```
  
